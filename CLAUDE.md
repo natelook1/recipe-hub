@@ -32,9 +32,17 @@ cd frontend && npm install && npm run dev
 ## Deploy
 
 ```powershell
-.\release.ps1              # build + push + deploy
-.\release.ps1 -Bump patch  # bump version first
-.\release.ps1 -SkipDeploy  # frontend only (Cloudflare Pages auto-deploys on push)
+.\release.ps1                  # git push + git pull on server + docker build + deploy
+.\release.ps1 -Bump patch      # bump version first, then full release
+.\release.ps1 -BackendOnly     # git push + SSH deploy backend only
+.\release.ps1 -FrontendOnly    # git push only (Cloudflare Pages auto-deploys)
+```
+
+**First-time server setup** — clone the repo on `swarm-mgr-01` before first deploy:
+```bash
+ssh administrator@192.168.30.67
+git clone https://github.com/natelook1/recipe-hub.git /opt/recipe-hub
+mkdir -p /etc/recipe-hub/data/images
 ```
 
 ## Key Files
