@@ -59,3 +59,11 @@ cd frontend && npm install && npm run dev
 - Frontend: Cloudflare Pages, auto-deploys on `main` push
 - Secrets: `gemini_api_key`, `recipe_api_key` as Docker Swarm secrets
 - Data: Docker bind mount at `/etc/recipe-hub/data` (DB + images, not R2)
+
+## Roadmap
+
+**Phase 1 (now):** Manual entry only — `ManualTab` in `AddRecipeSheet.jsx`. URL/text/photo tabs wired but Gemini key not configured yet.
+
+**Phase 2:** AI OCR — enable Gemini 2.5 for photo extraction (recipe cards, cookbooks). Provision `gemini_api_key` Docker secret.
+
+**Phase 3:** Suggestions feed — scraper populates a "Discover" feed from her favourite sources (configured list of sites). Likely an n8n workflow that polls sources and stores results in a `suggestions` table.
