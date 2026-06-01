@@ -73,7 +73,7 @@ if ($Bump) {
 Step "Pushing to GitHub..."
 git push
 if ($LASTEXITCODE -ne 0) { Fail "git push failed" }
-OK "Pushed — Cloudflare Pages will deploy frontend automatically"
+OK "Pushed - Cloudflare Pages will deploy frontend automatically"
 
 if ($FrontendOnly) {
     Write-Host "`n============================================" -ForegroundColor Green
@@ -85,7 +85,7 @@ if ($FrontendOnly) {
 # ── 2. SSH: git pull on server ─────────────────────────────────────────────────
 
 Step "Pulling latest code on swarm-mgr-01..."
-ssh $SERVER "cd $REMOTE_DIR && git pull"
+ssh $SERVER "git config --global --add safe.directory $REMOTE_DIR; cd $REMOTE_DIR && git pull"
 if ($LASTEXITCODE -ne 0) { Fail "git pull on server failed - is the repo cloned at $REMOTE_DIR?" }
 OK "Server repo up to date"
 
