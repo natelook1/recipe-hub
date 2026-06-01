@@ -21,7 +21,7 @@ $REMOTE_DIR   = "/opt/recipe-hub"
 $REMOTE_STACK = "$REMOTE_DIR/stack/recipe-hub.yml"
 $SERVICE      = "recipe-hub_api"
 $IMAGE        = "recipe-hub-api:latest"
-$HEALTH_URL   = "http://localhost:3002/health"
+$HEALTH_URL   = "https://recipes-api.looknet.ca/health"
 
 function Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function OK($msg)   { Write-Host "    [OK] $msg" -ForegroundColor Green }
@@ -127,5 +127,5 @@ while ($true) {
 
 Write-Host "`n============================================" -ForegroundColor Green
 Write-Host "  Release complete!" -ForegroundColor Green
-Write-Host "  API : https://recipes.looknet.ca/health" -ForegroundColor Cyan
+Write-Host "  API : https://recipes-api.looknet.ca/health" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Green

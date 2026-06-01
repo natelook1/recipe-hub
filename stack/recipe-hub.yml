@@ -30,7 +30,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.swarm.network=proxy_stable"
-        - "traefik.http.routers.recipe-api.rule=Host(`recipes.looknet.ca`)"
+        - "traefik.http.routers.recipe-api.rule=Host(`recipes-api.looknet.ca`)"
         - "traefik.http.routers.recipe-api.entrypoints=websecure"
         - "traefik.http.routers.recipe-api.tls=true"
         - "traefik.http.services.recipe-api-svc.loadbalancer.server.port=3000"

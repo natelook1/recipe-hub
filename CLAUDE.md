@@ -63,8 +63,8 @@ mkdir -p /etc/recipe-hub/data/images
 
 ## Infra
 
-- Backend: `swarm-mgr-01` (192.168.30.67), port 3002, stack name `recipe-hub`
-- Frontend: Cloudflare Pages, auto-deploys on `main` push
+- Backend API: `recipes-api.looknet.ca` → `swarm-mgr-01:3002`, x-api-key auth only (no Authentik)
+- Frontend: `recipes.looknet.ca` → Cloudflare Pages, behind Authentik proxy provider
 - Secrets: `gemini_api_key`, `recipe_api_key` as Docker Swarm secrets
 - Data: Docker bind mount at `/etc/recipe-hub/data` (DB + images, not R2)
 
