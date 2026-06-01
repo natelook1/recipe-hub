@@ -68,7 +68,23 @@ if ($Bump) {
     OK "Bumped to v$newVersion"
 }
 
-# ── 1. Git Push ────────────────────────────────────────────────────────────────
+# ── 1. Sync stack file to swarm repo ──────────────────────────────────────────
+
+$swarmStack = "C:\dev\swarm\stacks\recipe-hub.yml"
+if (Test-Path (Split-Path $swarmStack)) {
+    Copy-Item "stack\recipe-hub.yml" $swarmStack -Force
+    $swarmChanged = git -C "C:\dev\swarm" status --porcelain stacks/recipe-hub.yml
+    if ($swarmChanged) {
+        git -C "C:\dev\swarm" add stacks/recipe-hub.yml
+        git -C "C:\dev\swarm" commit -m "chore: sync recipe-hub stack"
+        git -C "C:\dev\swarm" push
+        OK "Swarm repo synced"
+    } else {
+        OK "Swarm repo already up to date"
+    }
+}
+
+# ── 2. Git Push ────────────────────────────────────────────────────────────────
 
 Step "Pushing to GitHub..."
 git push
