@@ -21,15 +21,32 @@ services:
       - /etc/recipe-hub/data:/data
     deploy:
       replicas: 1
+      endpoint_mode: dnsrr
       placement:
         constraints:
           - node.hostname == swarm-mgr-01
       restart_policy:
         condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_stable"
+        - "traefik.http.routers.recipe-api.rule=Host(`recipes.looknet.ca`)"
+        - "traefik.http.routers.recipe-api.entrypoints=websecure"
+        - "traefik.http.routers.recipe-api.tls=true"
+        - "traefik.http.services.recipe-api-svc.loadbalancer.server.port=3000"
+        - "traefik.http.routers.recipe-api.middlewares=recipe-cors"
+        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolalloworiginlist=https://recipes.looknet.ca,https://recipe-hub.pages.dev"
+        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
+        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolallowheaders=Content-Type,x-api-key"
+        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolmaxage=100"
+        - "traefik.http.middlewares.recipe-cors.headers.addvaryheader=true"
 
 networks:
   proxy_stable:
     external: true
+  default:
+    external: true
+    name: proxy_stable
 
 secrets:
   gemini_api_key:
