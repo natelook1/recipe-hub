@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  api:
+    image: recipe-hub-api:latest
+    networks:
+      - proxy_stable
+    environment:
+      - PORT=3000
+      - DB_PATH=/data/recipe-hub.db
+      - IMAGE_PATH=/data/images
+    ports:
+      - target: 3000
+        published: 3002
+        protocol: tcp
+        mode: host
+    secrets:
+      - gemini_api_key
+      - recipe_api_key
+    volumes:
+      - /etc/recipe-hub/data:/data
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == swarm-mgr-01
+      restart_policy:
+        condition: on-failure
+
+networks:
+  proxy_stable:
+    external: true
+
+secrets:
+  gemini_api_key:
+    external: true
+  recipe_api_key:
+    external: true
