@@ -86,7 +86,7 @@ if ($FrontendOnly) {
 
 Step "Pulling latest code on swarm-mgr-01..."
 ssh $SERVER "cd $REMOTE_DIR && git pull"
-if ($LASTEXITCODE -ne 0) { Fail "git pull on server failed — is the repo cloned at $REMOTE_DIR?" }
+if ($LASTEXITCODE -ne 0) { Fail "git pull on server failed - is the repo cloned at $REMOTE_DIR?" }
 OK "Server repo up to date"
 
 # ── 3. Build Docker image on server ───────────────────────────────────────────
