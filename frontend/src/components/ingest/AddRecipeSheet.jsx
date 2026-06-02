@@ -7,8 +7,8 @@ import DraftEditor from './DraftEditor.jsx'
 import { showToast } from '../layout/Toast.jsx'
 
 const TABS = [
+  { id: 'url',    label: 'URL',    Icon: Link     },
   { id: 'manual', label: 'Manual', Icon: PenLine  },
-  { id: 'url',    label: 'URL',    Icon: Link,     soon: true },
   { id: 'text',   label: 'Paste',  Icon: FileText, soon: true },
   { id: 'photo',  label: 'Photo',  Icon: Camera,   soon: true },
 ]
@@ -20,7 +20,7 @@ const EMPTY_DRAFT = {
 
 export default function AddRecipeSheet({ onClose }) {
   const { settings } = useRecipes()
-  const [tab, setTab]       = useState('manual')
+  const [tab, setTab]       = useState('url')
   const [url, setUrl]       = useState('')
   const [text, setText]     = useState('')
   const [loading, setLoading] = useState(false)
