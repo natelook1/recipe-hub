@@ -1,4 +1,5 @@
 node_modules/
+frontend/generate-icons.mjs
 dist/
 .env
 .env.local
