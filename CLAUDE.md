@@ -79,7 +79,7 @@ docker secret create recipe_api_key -   # paste key, Ctrl+D
 ## Infra
 
 - Backend API: `recipes-api.looknet.ca` → Traefik → `swarm-mgr-01:3002` — x-api-key auth, no Authentik
-- Frontend: `recipes.looknet.ca` → Cloudflare Pages, behind Authentik proxy provider
+- Frontend: `recipes.looknet.ca` → Cloudflare Pages (Authentik commented out for now — add later)
 - Docker secrets: `gemini_api_key`, `recipe_api_key` on swarm-mgr-01
 - Data: bind mount `/etc/recipe-hub/data` on swarm-mgr-01 (SQLite DB + uploaded images, not R2)
 - CORS: handled in Express (regex), not Traefik — allows all `*.looknet.ca` and `*.pages.dev`
