@@ -166,8 +166,8 @@ export function convertIngredient(amount, unit, targetSystem) {
   // tsp/tbsp/drop/dash/pinch etc — 'both', never auto-convert
   if (conv.system === 'both') return { amount, unit }
 
-  // Already correct system
-  if (conv.system === targetSystem) return { amount, unit }
+  // Already correct system — still apply smart scaling for clean display (e.g. 1183ml → 1.18l)
+  if (conv.system === targetSystem) return smartScale(amount, unit, targetSystem)
 
   if (conv.type === 'temp') {
     const converted = targetSystem === 'metric'
@@ -208,18 +208,25 @@ const FRACTIONS = [
 
 export function formatAmount(amount) {
   if (amount == null) return ''
-  const whole = Math.floor(amount)
-  const frac  = amount - whole
+
+  // Round to remove floating point noise before any formatting
+  const rounded = Math.round(amount * 10000) / 10000
+  const whole   = Math.floor(rounded)
+  const frac    = rounded - whole
 
   if (frac < 0.01) return whole === 0 ? '' : String(whole)
 
+  // Try common fraction symbols
   for (const [val, sym] of FRACTIONS) {
     if (Math.abs(frac - val) < 0.04) {
       return whole > 0 ? `${whole}${sym}` : sym
     }
   }
 
-  return amount.toFixed(amount < 10 ? 2 : 1)
+  // Fallback: clean decimal — fewer digits for larger numbers
+  if (rounded >= 100) return Math.round(rounded).toString()
+  if (rounded >= 10)  return rounded.toFixed(1).replace(/\.0$/, '')
+  return rounded.toFixed(2).replace(/\.?0+$/, '')
 }
 
 export function formatResult(amount) {

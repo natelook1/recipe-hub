@@ -80,8 +80,8 @@ export default function RecipeDetail({ recipeId, onBack }) {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto pb-24" style={{ background: 'var(--color-bg)' }}>
-      {/* Hero */}
-      <div className="relative w-full aspect-[16/9] flex-shrink-0" style={{ background: 'var(--color-surface)' }}>
+      {/* Hero — shorter on mobile (aspect-[3/2]), taller on tablet+ */}
+      <div className="relative w-full flex-shrink-0" style={{ background: 'var(--color-surface)', aspectRatio: '3/2' }}>
         {hasImage ? (
           <img src={getRecipeImageUrl(recipe.id)} alt={recipe.title} className="w-full h-full object-cover" />
         ) : (
@@ -143,24 +143,28 @@ export default function RecipeDetail({ recipeId, onBack }) {
       </div>
 
       {/* Content */}
-      <div className="px-4 pt-4 space-y-5">
+      <div className="px-4 pt-5 space-y-5">
         <div>
-          <h1 className="text-2xl font-bold leading-tight" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
+          <h1 className="text-2xl font-bold leading-snug" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
             {recipe.title}
           </h1>
           {recipe.description && (
-            <p className="text-sm mt-1.5" style={{ color: 'var(--color-text-muted)' }}>{recipe.description}</p>
+            <p className="text-sm mt-2 leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>{recipe.description}</p>
           )}
-          <div className="flex items-center gap-4 mt-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            {(recipe.prep_time || recipe.cook_time) && (
+          <div className="flex flex-wrap items-center gap-3 mt-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            {recipe.prep_time > 0 && (
               <span className="flex items-center gap-1">
-                <Clock size={14} />
-                {(recipe.prep_time || 0) + (recipe.cook_time || 0)}m
+                <Clock size={14} /> Prep {recipe.prep_time}m
+              </span>
+            )}
+            {recipe.cook_time > 0 && (
+              <span className="flex items-center gap-1">
+                <Clock size={14} /> Cook {recipe.cook_time}m
               </span>
             )}
             {recipe.source_url && (
               <a href={recipe.source_url} target="_blank" rel="noreferrer"
-                className="flex items-center gap-1 hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+                className="flex items-center gap-1 active:opacity-60" style={{ color: 'var(--color-accent)' }}>
                 <Link size={14} /> Source
               </a>
             )}
@@ -168,7 +172,7 @@ export default function RecipeDetail({ recipeId, onBack }) {
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {tags.map(t => (
-                <span key={t} className="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                <span key={t} className="px-2.5 py-1 rounded-full text-xs font-medium"
                   style={{ background: 'var(--color-accent-muted)', color: 'var(--color-accent)' }}>{t}</span>
               ))}
             </div>
