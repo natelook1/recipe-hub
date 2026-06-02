@@ -246,7 +246,7 @@ if ($SkipGemini) {
             Write-Host "  [PASS] Weight ingredients in g: $($weightIngs | ForEach-Object { "$($_.amount)g $($_.name)" } | Select-Object -First 3)" -ForegroundColor Green
             $script:PassCount++
         } else {
-            Write-Host "  [WARN] No ingredients in grams — check unit conversion" -ForegroundColor Yellow
+            Write-Host "  [WARN] No ingredients in grams - check unit conversion" -ForegroundColor Yellow
         }
 
         # Show all ingredients for manual inspection
