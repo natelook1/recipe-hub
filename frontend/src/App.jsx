@@ -7,6 +7,7 @@ import RecipeBrowser from './components/recipes/RecipeBrowser.jsx'
 import RecipeDetail from './components/recipes/RecipeDetail.jsx'
 import AddRecipeSheet from './components/ingest/AddRecipeSheet.jsx'
 import SettingsPage from './components/settings/SettingsPage.jsx'
+import ConverterPage from './components/converter/ConverterPage.jsx'
 import { useDarkMode } from './hooks/useDarkMode.js'
 import { useTheme } from './hooks/useTheme.js'
 
@@ -43,6 +44,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto">
           {view === 'browse'   && <RecipeBrowser onSelect={handleSelect} onAdd={() => setShowAdd(true)} />}
           {view === 'detail'   && <RecipeDetail recipeId={selectedId} onBack={handleBack} />}
+          {view === 'converter' && <ConverterPage />}
           {view === 'settings' && <SettingsPage dark={dark} onToggleDark={toggleDark} theme={theme} />}
         </main>
 

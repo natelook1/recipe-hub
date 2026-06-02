@@ -1,13 +1,31 @@
 {
   "name": "Recipe Hub",
   "short_name": "Recipes",
-  "description": "Your personal recipe collection",
+  "description": "Your personal recipe collection — cook with confidence",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#faf7f2",
+  "orientation": "portrait-primary",
+  "background_color": "#1a1410",
   "theme_color": "#c2692f",
+  "categories": ["food", "lifestyle"],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.svg",  "sizes": "any",      "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Recipe",
+      "short_name": "Add",
+      "url": "/?add=1",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Converter",
+      "short_name": "Convert",
+      "url": "/?view=converter",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }

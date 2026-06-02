@@ -1,9 +1,10 @@
-import { BookOpen, PlusCircle, Settings } from 'lucide-react'
+import { BookOpen, PlusCircle, ArrowLeftRight, Settings } from 'lucide-react'
 
 const NAV = [
-  { id: 'browse',   label: 'Recipes',  Icon: BookOpen    },
-  { id: 'add',      label: 'Add',      Icon: PlusCircle  },
-  { id: 'settings', label: 'Settings', Icon: Settings    },
+  { id: 'browse',    label: 'Recipes',   Icon: BookOpen        },
+  { id: 'add',       label: 'Add',       Icon: PlusCircle      },
+  { id: 'converter', label: 'Convert',   Icon: ArrowLeftRight  },
+  { id: 'settings',  label: 'Settings',  Icon: Settings        },
 ]
 
 export default function BottomNav({ view, onNav }) {
