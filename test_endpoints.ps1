@@ -307,7 +307,7 @@ Write-Host "`n--- Cleanup ---" -ForegroundColor Yellow
 if ($script:CreatedId) {
     Test-Endpoint -Method "DELETE" -Path "/api/recipes/$($script:CreatedId)" -Headers $AuthHeaders -ExpectedCodes @(200)
     Test-Endpoint -Method "GET"    -Path "/api/recipes/$($script:CreatedId)" -Headers $AuthHeaders -ExpectedCodes @(404)
-    Write-Host "  Verified cascade delete (GET → 404)" -ForegroundColor DarkGray
+    Write-Host "  Verified cascade delete (GET -> 404)" -ForegroundColor DarkGray
 }
 if ($confirmedId) {
     Test-Endpoint -Method "DELETE" -Path "/api/recipes/$confirmedId" -Headers $AuthHeaders -ExpectedCodes @(200)
