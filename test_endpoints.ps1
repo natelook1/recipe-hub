@@ -1,7 +1,8 @@
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'ApiKey')]
 param(
-    [string]$BaseUrl = "http://localhost:3000",
-    [string]$ApiKey  = "dev-key"
+    [string]$BaseUrl    = "http://localhost:3000",
+    [string]$ApiKey     = "dev-key",
+    [switch]$SkipGemini
 )
 
 $ErrorActionPreference = "Continue"
@@ -208,6 +209,83 @@ Test-Endpoint -Method "POST" -Path "/api/ingest/url"  -Headers $AuthHeaders -Bod
 Test-Endpoint -Method "POST" -Path "/api/ingest/text" -Headers $AuthHeaders -Body @{} -ExpectedCodes @(400)
 # No auth
 Test-Endpoint -Method "POST" -Path "/api/ingest/url"  -Headers $NoKeyHeaders -Body @{ url = "https://example.com" } -ExpectedCodes @(401)
+
+# ─── 9b. Gemini Live Extraction ──────────────────────────────────────────────
+
+if ($SkipGemini) {
+    Write-Host "`n--- Gemini Live Tests --- [SKIPPED] (-SkipGemini)" -ForegroundColor Yellow
+} else {
+    Write-Host "`n--- Gemini Live Extraction ---" -ForegroundColor Yellow
+    Write-Host "  (pass -SkipGemini to skip these)" -ForegroundColor DarkGray
+
+    # URL extraction — expects Gemini to return structured recipe
+    $urlResult = Test-Endpoint -Method "POST" -Path "/api/ingest/url" -Headers $AuthHeaders `
+        -Body @{ url = "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/"; preferredUnit = "metric" } `
+        -ExpectedCodes @(200)
+
+    if ($urlResult.Content) {
+        $draft = $urlResult.Content
+        Write-Host "  Title     : $($draft.title)" -ForegroundColor DarkGray
+        Write-Host "  Servings  : $($draft.servings)" -ForegroundColor DarkGray
+        Write-Host "  Ingredients: $($draft.ingredients.Count)" -ForegroundColor DarkGray
+
+        # Verify no solid ingredient came back as ml (cups->ml conversion bug)
+        $mlSolids = $draft.ingredients | Where-Object { $_.unit -eq 'ml' -and $_.name -match 'flour|sugar|butter|oat|chocolate' }
+        if ($mlSolids) {
+            Write-Host "  [FAIL] Solid ingredients incorrectly converted to ml:" -ForegroundColor Red
+            $mlSolids | ForEach-Object { Write-Host "    - $($_.amount) ml $($_.name)" -ForegroundColor Red }
+            $script:FailCount++
+        } else {
+            Write-Host "  [PASS] No solid ingredients as ml" -ForegroundColor Green
+            $script:PassCount++
+        }
+
+        # Verify flour/sugar/butter came back in g (metric preferred)
+        $weightIngs = $draft.ingredients | Where-Object { $_.unit -eq 'g' }
+        if ($weightIngs.Count -gt 0) {
+            Write-Host "  [PASS] Weight ingredients in g: $($weightIngs | ForEach-Object { "$($_.amount)g $($_.name)" } | Select-Object -First 3)" -ForegroundColor Green
+            $script:PassCount++
+        } else {
+            Write-Host "  [WARN] No ingredients in grams — check unit conversion" -ForegroundColor Yellow
+        }
+
+        # Show all ingredients for manual inspection
+        Write-Host "  Ingredient list:" -ForegroundColor DarkGray
+        $draft.ingredients | ForEach-Object {
+            $amt = if ($_.amount) { $_.amount } else { '?' }
+            Write-Host "    $amt $($_.unit) $($_.name)" -ForegroundColor DarkGray
+        }
+    }
+
+    # Text extraction — paste raw recipe text
+    $pasteText = @"
+Classic Shortbread
+Makes 24 biscuits
+250g plain flour
+125g butter, cold and cubed
+55g icing sugar
+pinch of salt
+1. Preheat oven to 160C.
+2. Rub butter into flour until mixture resembles breadcrumbs.
+3. Stir in icing sugar and salt.
+4. Knead into a dough and roll to 1cm thick.
+5. Cut into fingers and bake for 20-25 minutes until pale golden.
+"@
+
+    $textResult = Test-Endpoint -Method "POST" -Path "/api/ingest/text" -Headers $AuthHeaders `
+        -Body @{ text = $pasteText; preferredUnit = "metric" } `
+        -ExpectedCodes @(200)
+
+    if ($textResult.Content) {
+        $td = $textResult.Content
+        Write-Host "  Paste title: $($td.title)" -ForegroundColor DarkGray
+        Write-Host "  Paste ingredients: $($td.ingredients.Count)" -ForegroundColor DarkGray
+        $td.ingredients | ForEach-Object {
+            Write-Host "    $($_.amount) $($_.unit) $($_.name)" -ForegroundColor DarkGray
+        }
+        if ($td.ingredients.Count -gt 0) { $script:PassCount++ } else { $script:FailCount++ }
+    }
+}
 
 # ─── 10. Ingest Confirm ──────────────────────────────────────────────────────
 
