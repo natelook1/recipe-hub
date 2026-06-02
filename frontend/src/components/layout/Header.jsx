@@ -1,7 +1,7 @@
-import { Search, X } from 'lucide-react'
+import { Search, X, Sun, Moon } from 'lucide-react'
 import { useRecipes } from '../../context/RecipeContext.jsx'
 
-export default function Header({ onAddClick }) {
+export default function Header({ dark, onToggleDark }) {
   const { searchQuery, setSearchQuery, setActiveTag } = useRecipes()
 
   function handleClear() {
@@ -10,23 +10,31 @@ export default function Header({ onAddClick }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-[#faf7f2]/95 backdrop-blur border-b border-[#e8ddd0] px-4 pt-safe-top">
-      <div className="flex items-center gap-3 py-3">
+    <header className="sticky top-0 z-30 backdrop-blur border-b px-4 pt-safe-top" style={{ background: 'var(--color-header-bg)', borderColor: 'var(--color-border)' }}>
+      <div className="flex items-center gap-2 py-3">
         <div className="flex-1 relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a6a50]" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }} />
           <input
             type="search"
             placeholder="Search recipes…"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 rounded-xl bg-[#f5f0e8] border border-[#e8ddd0] text-sm text-[#2c1a0e] placeholder:text-[#8a6a50] focus:outline-none focus:border-[#c2692f] transition-colors"
+            className="w-full pl-9 pr-8 py-2 rounded-xl text-sm focus:outline-none transition-colors"
+            style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border)', color: 'var(--color-text)' }}
           />
           {searchQuery && (
-            <button onClick={handleClear} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8a6a50]">
+            <button onClick={handleClear} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--color-text-muted)' }}>
               <X size={14} />
             </button>
           )}
         </div>
+        <button
+          onClick={onToggleDark}
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
+          style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
+        >
+          {dark ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
       </div>
     </header>
   )

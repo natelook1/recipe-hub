@@ -8,7 +8,7 @@ const NAV = [
 
 export default function BottomNav({ view, onNav }) {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-[#e8ddd0] pb-safe-bottom">
+    <nav className="fixed bottom-0 inset-x-0 z-30 backdrop-blur border-t pb-safe-bottom" style={{ background: 'var(--color-nav-bg)', borderColor: 'var(--color-border)' }}>
       <div className="flex">
         {NAV.map(({ id, label, Icon }) => {
           const active = view === id || (view === 'detail' && id === 'browse')

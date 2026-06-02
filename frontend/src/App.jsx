@@ -7,11 +7,13 @@ import RecipeBrowser from './components/recipes/RecipeBrowser.jsx'
 import RecipeDetail from './components/recipes/RecipeDetail.jsx'
 import AddRecipeSheet from './components/ingest/AddRecipeSheet.jsx'
 import SettingsPage from './components/settings/SettingsPage.jsx'
+import { useDarkMode } from './hooks/useDarkMode.js'
 
 export default function App() {
   const [view, setView]             = useState('browse')
   const [selectedId, setSelectedId] = useState(null)
   const [showAdd, setShowAdd]       = useState(false)
+  const { dark, toggle: toggleDark } = useDarkMode()
 
   function handleSelect(id) {
     setSelectedId(id)
@@ -33,8 +35,8 @@ export default function App() {
 
   return (
     <RecipeProvider>
-      <div className="flex flex-col h-full bg-[#faf7f2]">
-        {showHeader && <Header />}
+      <div className="flex flex-col h-full" style={{ background: 'var(--color-bg)' }}>
+        {showHeader && <Header dark={dark} onToggleDark={toggleDark} />}
 
         <main className="flex-1 overflow-y-auto">
           {view === 'browse'   && <RecipeBrowser onSelect={handleSelect} />}

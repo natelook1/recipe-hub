@@ -15,8 +15,41 @@ html, body, #root {
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #faf7f2;
+  background: var(--color-bg);
+  color: var(--color-text);
   overscroll-behavior: none;
+}
+
+/* ── Light theme ── */
+:root {
+  --color-bg:           #faf7f2;
+  --color-bg-card:      #ffffff;
+  --color-surface:      #f5f0e8;
+  --color-accent:       #c2692f;
+  --color-accent-soft:  #e8956b;
+  --color-accent-muted: #f2d4c1;
+  --color-green:        #4a7c59;
+  --color-text:         #2c1a0e;
+  --color-text-muted:   #8a6a50;
+  --color-border:       #e8ddd0;
+  --color-nav-bg:       #ffffff;
+  --color-header-bg:    rgba(250,247,242,0.95);
+}
+
+/* ── Dark theme ── */
+html.dark {
+  --color-bg:           #1a1410;
+  --color-bg-card:      #241e18;
+  --color-surface:      #2e2620;
+  --color-accent:       #e07b3a;
+  --color-accent-soft:  #c2692f;
+  --color-accent-muted: #4a2e1a;
+  --color-green:        #5a9c6e;
+  --color-text:         #f0e8df;
+  --color-text-muted:   #a08870;
+  --color-border:       #3a2e24;
+  --color-nav-bg:       #1e1812;
+  --color-header-bg:    rgba(26,20,16,0.95);
 }
 
 /* Slide-up sheet animation */
@@ -83,20 +116,20 @@ body {
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border: 1.5px solid #e8ddd0;
+  border: 1.5px solid var(--color-border);
   border-radius: 0.625rem;
-  background: #faf7f2;
+  background: var(--color-surface);
   font-size: 0.875rem;
-  color: #2c1a0e;
+  color: var(--color-text);
   font-family: 'Inter', sans-serif;
   outline: none;
   transition: border-color 0.15s;
 }
 
 .input:focus {
-  border-color: #c2692f;
+  border-color: var(--color-accent);
 }
 
 .input::placeholder {
-  color: #8a6a50;
+  color: var(--color-text-muted);
 }

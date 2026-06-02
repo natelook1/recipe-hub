@@ -34,12 +34,6 @@ services:
         - "traefik.http.routers.recipe-api.entrypoints=websecure"
         - "traefik.http.routers.recipe-api.tls=true"
         - "traefik.http.services.recipe-api-svc.loadbalancer.server.port=3000"
-        - "traefik.http.routers.recipe-api.middlewares=recipe-cors"
-        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolalloworiginlist=https://recipes.looknet.ca,https://recipe-hub.pages.dev"
-        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
-        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolallowheaders=Content-Type,x-api-key"
-        - "traefik.http.middlewares.recipe-cors.headers.accesscontrolmaxage=100"
-        - "traefik.http.middlewares.recipe-cors.headers.addvaryheader=true"
 
 networks:
   proxy_stable:

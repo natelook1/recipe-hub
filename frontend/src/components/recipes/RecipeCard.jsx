@@ -23,7 +23,8 @@ export default function RecipeCard({ recipe, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="fade-up group w-full text-left bg-white rounded-2xl shadow-sm border border-[#e8ddd0] overflow-hidden hover:shadow-md transition-shadow active:scale-[0.98] transition-transform"
+      className="fade-up group w-full text-left rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow active:scale-[0.98] transition-transform"
+      style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' }}
     >
       {/* Image */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
@@ -49,7 +50,7 @@ export default function RecipeCard({ recipe, onClick }) {
 
       {/* Info */}
       <div className="p-3">
-        <h3 className="font-semibold text-[#2c1a0e] text-sm leading-snug line-clamp-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+        <h3 className="font-semibold text-sm leading-snug line-clamp-2" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
           {recipe.title}
         </h3>
         {recipe.description && (

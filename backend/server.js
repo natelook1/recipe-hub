@@ -146,7 +146,17 @@ function convertIngredient(amount, unit, targetSystem) {
 // ─── Express App ─────────────────────────────────────────────────────────────
 
 const app = express()
-app.use(cors())
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow no-origin (curl, Postman, same-origin), looknet.ca subdomains, and any pages.dev preview
+    if (!origin || /^https:\/\/([^.]+\.)?looknet\.ca$/.test(origin) || /\.pages\.dev$/.test(origin)) {
+      return cb(null, true)
+    }
+    cb(new Error('CORS: origin not allowed'))
+  },
+  allowedHeaders: ['Content-Type', 'x-api-key'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}))
 app.use(express.json({ limit: '10mb' }))
 
 const upload = multer({

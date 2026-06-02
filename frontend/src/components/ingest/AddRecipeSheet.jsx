@@ -73,10 +73,10 @@ export default function AddRecipeSheet({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col justify-end bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="sheet-in bg-white rounded-t-2xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="sheet-in rounded-t-2xl max-h-[92vh] flex flex-col overflow-hidden" style={{ background: 'var(--color-bg-card)' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-[#e8ddd0] flex-shrink-0">
-          <h2 className="font-bold text-[#2c1a0e] text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h2 className="font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
             {draft ? 'Review & Save' : 'Add Recipe'}
           </h2>
           <div className="flex gap-2">
