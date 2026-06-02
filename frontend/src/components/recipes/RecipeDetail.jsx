@@ -45,7 +45,7 @@ export default function RecipeDetail({ recipeId, onBack }) {
 
   if (!recipe) return null
 
-  const steps       = JSON.parse(recipe.steps || '[]')
+  const steps       = Array.isArray(recipe.steps) ? recipe.steps : JSON.parse(recipe.steps || '[]')
   const ingredients = recipe.ingredients || []
   const tags        = recipe.tags || []
   const scale       = servings / recipe.servings
