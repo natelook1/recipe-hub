@@ -100,139 +100,117 @@ export default function AddRecipeSheet({ onClose }) {
     <div className="fixed inset-0 z-40 flex flex-col justify-end bg-black/40 backdrop-blur-sm" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="sheet-in rounded-t-2xl max-h-[92vh] flex flex-col overflow-hidden" style={{ background: 'var(--color-bg-card)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#e8ddd0] flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-4 border-b flex-shrink-0" style={{ borderColor: 'var(--color-border)' }}>
           <h2 className="font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
             {draft ? 'Review & Save' : 'Add Recipe'}
           </h2>
           <div className="flex gap-2">
             {draft && (
-              <button onClick={() => setDraft(null)} className="text-sm text-[#8a6a50] hover:text-[#c2692f] font-medium">← Back</button>
+              <button onClick={() => setDraft(null)} className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>← Back</button>
             )}
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#f5f0e8] flex items-center justify-center">
-              <X size={16} className="text-[#8a6a50]" />
+            <button onClick={onClose} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}>
+              <X size={16} />
             </button>
           </div>
         </div>
 
+        {/* Tab bar — fixed, never scrolls away */}
+        {!loading && !draft && (
+          <div className="flex border-b flex-shrink-0" style={{ borderColor: 'var(--color-border)' }}>
+            {TABS.map(({ id, label, Icon, soon }) => (
+              <button
+                key={id}
+                onClick={() => !soon && setTab(id)}
+                className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors relative ${
+                  soon ? 'border-transparent opacity-40 cursor-not-allowed' : 'border-transparent'
+                }`}
+                style={{
+                  borderBottomColor: tab === id ? 'var(--color-accent)' : 'transparent',
+                  color: tab === id ? 'var(--color-accent)' : 'var(--color-text-muted)',
+                }}
+              >
+                <Icon size={14} />
+                {label}
+                {soon && <span className="text-[9px] leading-none ml-0.5 opacity-70">soon</span>}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
           {loading && <ExtractionProgress />}
-
-          {!loading && draft && (
-            <DraftEditor draft={draft} onClose={onClose} />
-          )}
-
+          {!loading && draft && <DraftEditor draft={draft} onClose={onClose} />}
           {!loading && !draft && (
-            <>
-              {/* Tab bar */}
-              <div className="flex border-b border-[#e8ddd0] px-4 flex-shrink-0">
-                {TABS.map(({ id, label, Icon, soon }) => (
-                  <button
-                    key={id}
-                    onClick={() => !soon && setTab(id)}
-                    className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors relative ${
-                      tab === id
-                        ? 'border-[#c2692f] text-[#c2692f]'
-                        : soon
-                          ? 'border-transparent opacity-40 cursor-not-allowed'
-                          : 'border-transparent'
-                    }`}
-                    style={{ color: tab === id ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
-                  >
-                    <Icon size={14} />
-                    {label}
-                    {soon && <span className="text-[9px] leading-none ml-0.5 opacity-70">soon</span>}
+            <div className="p-4 space-y-4">
+              {/* URL tab */}
+              {tab === 'url' && (
+                <>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Paste a recipe URL and we'll extract it automatically.</p>
+                  <input
+                    className="input"
+                    type="url"
+                    placeholder="https://www.allrecipes.com/recipe/..."
+                    value={url}
+                    onChange={e => { setUrl(e.target.value); setUrlWarning(null) }}
+                    onKeyDown={e => e.key === 'Enter' && handleUrlExtract()}
+                  />
+                  {urlWarning && (
+                    <div className="rounded-xl p-3 text-sm" style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)', border: '1px solid var(--color-accent-soft)' }}>
+                      <p className="font-semibold mb-1" style={{ color: 'var(--color-accent)' }}>Can't extract from this site</p>
+                      <p style={{ color: 'var(--color-text)' }}>{urlWarning.reason}</p>
+                      <p className="mt-1.5" style={{ color: 'var(--color-text-muted)' }}><span className="font-medium">Tip:</span> {urlWarning.tip}</p>
+                    </div>
+                  )}
+                  <button onClick={handleUrlExtract} disabled={!url.trim()}
+                    className="w-full py-3.5 font-semibold rounded-xl disabled:opacity-40 transition-colors text-white"
+                    style={{ background: 'var(--color-accent)' }}>
+                    Extract Recipe
                   </button>
-                ))}
-              </div>
+                </>
+              )}
 
-              <div className="p-4 space-y-4">
-                {/* URL tab */}
-                {tab === 'url' && (
-                  <>
-                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Paste a recipe URL and we'll extract it automatically.</p>
-                    <input
-                      className="input"
-                      type="url"
-                      placeholder="https://www.allrecipes.com/recipe/..."
-                      value={url}
-                      onChange={e => { setUrl(e.target.value); setUrlWarning(null) }}
-                      onKeyDown={e => e.key === 'Enter' && handleUrlExtract()}
-                    />
-                    {urlWarning && (
-                      <div className="rounded-xl p-3 text-sm" style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)', border: '1px solid var(--color-accent-soft)' }}>
-                        <p className="font-semibold mb-1" style={{ color: 'var(--color-accent)' }}>Can't extract from this site</p>
-                        <p style={{ color: 'var(--color-text)' }}>{urlWarning.reason}</p>
-                        <p className="mt-1.5" style={{ color: 'var(--color-text-muted)' }}><span className="font-medium">Tip:</span> {urlWarning.tip}</p>
-                      </div>
-                    )}
-                    <button
-                      onClick={handleUrlExtract}
-                      disabled={!url.trim()}
-                      className="w-full py-3 font-semibold rounded-xl disabled:opacity-40 transition-colors text-white"
-                      style={{ background: 'var(--color-accent)' }}
-                    >
-                      Extract Recipe
-                    </button>
-                  </>
-                )}
+              {/* Text tab */}
+              {tab === 'text' && (
+                <>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Paste recipe text from anywhere and we'll parse it into a structured recipe.</p>
+                  <textarea className="input resize-none" rows={8} placeholder="Paste recipe text here…"
+                    value={text} onChange={e => setText(e.target.value)} />
+                  <button onClick={handleTextExtract} disabled={!text.trim()}
+                    className="w-full py-3.5 font-semibold rounded-xl disabled:opacity-40 transition-colors text-white"
+                    style={{ background: 'var(--color-accent)' }}>
+                    Extract Recipe
+                  </button>
+                </>
+              )}
 
-                {/* Text tab */}
-                {tab === 'text' && (
-                  <>
-                    <p className="text-sm text-[#8a6a50]">Paste recipe text from anywhere — we'll parse it into a structured recipe.</p>
-                    <textarea
-                      className="input resize-none"
-                      rows={8}
-                      placeholder="Paste recipe text here…"
-                      value={text}
-                      onChange={e => setText(e.target.value)}
-                    />
-                    <button
-                      onClick={handleTextExtract}
-                      disabled={!text.trim()}
-                      className="w-full py-3 bg-[#c2692f] text-white font-semibold rounded-xl disabled:opacity-40 hover:bg-[#a85426] transition-colors"
-                    >
-                      Extract Recipe
-                    </button>
-                  </>
-                )}
+              {/* Photo tab */}
+              {tab === 'photo' && (
+                <>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Take a photo or upload an image of a recipe card or cookbook page.</p>
+                  <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+                    onChange={e => e.target.files?.[0] && handlePhotoExtract(e.target.files[0])} />
+                  <button onClick={() => fileRef.current?.click()}
+                    className="w-full py-10 border-2 border-dashed rounded-xl flex flex-col items-center gap-2 transition-colors"
+                    style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                    <Camera size={32} />
+                    <span className="text-sm font-medium">Take photo or choose image</span>
+                  </button>
+                </>
+              )}
 
-                {/* Photo tab */}
-                {tab === 'photo' && (
-                  <>
-                    <p className="text-sm text-[#8a6a50]">Take a photo or upload an image of a recipe card or cookbook page.</p>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={e => e.target.files?.[0] && handlePhotoExtract(e.target.files[0])}
-                    />
-                    <button
-                      onClick={() => fileRef.current?.click()}
-                      className="w-full py-10 border-2 border-dashed border-[#e8ddd0] rounded-xl flex flex-col items-center gap-2 text-[#8a6a50] hover:border-[#c2692f] hover:text-[#c2692f] transition-colors"
-                    >
-                      <Camera size={32} />
-                      <span className="text-sm font-medium">Take photo or choose image</span>
-                    </button>
-                  </>
-                )}
-
-                {/* Manual tab */}
-                {tab === 'manual' && (
-                  <>
-                    <p className="text-sm text-[#8a6a50]">Enter your recipe by hand.</p>
-                    <button
-                      onClick={startManual}
-                      className="w-full py-3 bg-[#c2692f] text-white font-semibold rounded-xl hover:bg-[#a85426] transition-colors"
-                    >
-                      Start from Scratch
-                    </button>
-                  </>
-                )}
-              </div>
-            </>
+              {/* Manual tab */}
+              {tab === 'manual' && (
+                <>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Enter your recipe by hand.</p>
+                  <button onClick={startManual}
+                    className="w-full py-3.5 font-semibold rounded-xl transition-colors text-white"
+                    style={{ background: 'var(--color-accent)' }}>
+                    Start from Scratch
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>

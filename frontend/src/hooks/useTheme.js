@@ -84,6 +84,9 @@ function loadSaved() {
 function applyPalette(palette) {
   const root = document.documentElement
   Object.entries(palette).forEach(([k, v]) => root.style.setProperty(k, v))
+  // Keep browser chrome / status bar in sync with accent colour
+  const metaTheme = document.querySelector('meta[name="theme-color"]')
+  if (metaTheme) metaTheme.setAttribute('content', palette['--color-accent'] ?? '#c2692f')
 }
 
 export function useTheme(dark) {
