@@ -258,19 +258,7 @@ if ($SkipGemini) {
     }
 
     # Text extraction — paste raw recipe text
-    $pasteText = @"
-Classic Shortbread
-Makes 24 biscuits
-250g plain flour
-125g butter, cold and cubed
-55g icing sugar
-pinch of salt
-1. Preheat oven to 160C.
-2. Rub butter into flour until mixture resembles breadcrumbs.
-3. Stir in icing sugar and salt.
-4. Knead into a dough and roll to 1cm thick.
-5. Cut into fingers and bake for 20-25 minutes until pale golden.
-"@
+    $pasteText = "Classic Shortbread`nMakes 24 biscuits`n250g plain flour`n125g butter, cold and cubed`n55g icing sugar`npinch of salt`n1. Preheat oven to 160C.`n2. Rub butter into flour until mixture resembles breadcrumbs.`n3. Stir in icing sugar and salt.`n4. Knead into a dough and roll to 1cm thick.`n5. Cut into fingers and bake for 20-25 minutes until pale golden."
 
     $textResult = Test-Endpoint -Method "POST" -Path "/api/ingest/text" -Headers $AuthHeaders `
         -Body @{ text = $pasteText; preferredUnit = "metric" } `
