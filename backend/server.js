@@ -337,9 +337,8 @@ app.post('/api/ingest/url', auth, async (req, res) => {
   const { url, preferredUnit = 'metric' } = req.body
   if (!url) return res.status(400).json({ error: 'url required' })
   try {
-    const draft = await extractFromUrl(url)
-    const converted = convertDraftIngredients(draft, preferredUnit)
-    res.json(converted)
+    const draft = await extractFromUrl(url, preferredUnit)
+    res.json(draft)
   } catch (e) {
     console.error('[ingest/url]', e.message)
     res.status(422).json({ error: 'extraction_failed', message: e.message })
@@ -350,9 +349,8 @@ app.post('/api/ingest/text', auth, async (req, res) => {
   const { text, preferredUnit = 'metric' } = req.body
   if (!text) return res.status(400).json({ error: 'text required' })
   try {
-    const draft = await extractFromText(text)
-    const converted = convertDraftIngredients(draft, preferredUnit)
-    res.json(converted)
+    const draft = await extractFromText(text, preferredUnit)
+    res.json(draft)
   } catch (e) {
     console.error('[ingest/text]', e.message)
     res.status(422).json({ error: 'extraction_failed', message: e.message })
@@ -363,9 +361,8 @@ app.post('/api/ingest/photo', auth, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'file required' })
   const preferredUnit = req.body.preferredUnit || 'metric'
   try {
-    const draft = await extractFromPhoto(req.file.buffer, req.file.mimetype)
-    const converted = convertDraftIngredients(draft, preferredUnit)
-    res.json(converted)
+    const draft = await extractFromPhoto(req.file.buffer, req.file.mimetype, preferredUnit)
+    res.json(draft)
   } catch (e) {
     console.error('[ingest/photo]', e.message)
     res.status(422).json({ error: 'extraction_failed', message: e.message })
