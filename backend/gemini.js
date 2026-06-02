@@ -198,6 +198,28 @@ RULES:
 `.trim()
 }
 
+// ─── Retry wrapper ────────────────────────────────────────────────────────────
+
+async function withRetry(fn, { retries = 3, baseDelayMs = 1500 } = {}) {
+  let lastErr
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastErr = err
+      const msg = err.message ?? ''
+      const isTransient = msg.includes('503') || msg.includes('429') ||
+                          msg.includes('overloaded') || msg.includes('high demand') ||
+                          msg.includes('Service Unavailable') || msg.includes('Too Many Requests')
+      if (!isTransient || attempt === retries) throw err
+      const delay = baseDelayMs * Math.pow(2, attempt)  // 1.5s, 3s, 6s
+      console.log(`[Gemini] Transient error (attempt ${attempt + 1}/${retries + 1}), retrying in ${delay}ms — ${msg.slice(0, 80)}`)
+      await new Promise(r => setTimeout(r, delay))
+    }
+  }
+  throw lastErr
+}
+
 // ─── Multi-turn function calling loop ────────────────────────────────────────
 
 async function runWithTools(model, contents) {
@@ -205,7 +227,7 @@ async function runWithTools(model, contents) {
   let turn = 0
 
   while (turn++ < MAX_TURNS) {
-    const result = await model.generateContent({ contents, tools: TOOLS })
+    const result = await withRetry(() => model.generateContent({ contents, tools: TOOLS }))
     const response = result.response
     const candidate = response.candidates?.[0]
     if (!candidate) throw new Error('No candidates returned from Gemini')
