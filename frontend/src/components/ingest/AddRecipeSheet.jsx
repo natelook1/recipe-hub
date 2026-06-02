@@ -18,19 +18,44 @@ const EMPTY_DRAFT = {
   tags: [], ingredients: [], steps: [], source_url: '', source_type: 'manual',
 }
 
+// Sites that block server-side fetching — explain why and what to do instead
+const BLOCKED_SITES = {
+  'pinterest.com':    { reason: "Pinterest blocks automated access.", tip: "Open the pin, tap the link to the original recipe site, then paste that URL here instead." },
+  'pinterest.co.uk':  { reason: "Pinterest blocks automated access.", tip: "Open the pin, tap the link to the original recipe site, then paste that URL here instead." },
+  'pinterest.ca':     { reason: "Pinterest blocks automated access.", tip: "Open the pin, tap the link to the original recipe site, then paste that URL here instead." },
+  'pin.it':           { reason: "Pinterest blocks automated access.", tip: "Open the pin, tap the link to the original recipe site, then paste that URL here instead." },
+  'instagram.com':    { reason: "Instagram requires login to view content.", tip: "Copy the recipe text from the caption and use the Paste tab instead." },
+  'tiktok.com':       { reason: "TikTok blocks automated access.", tip: "Copy the recipe text from the description and use the Paste tab instead." },
+  'facebook.com':     { reason: "Facebook requires login to view content.", tip: "Copy the recipe text and use the Paste tab instead." },
+}
+
 export default function AddRecipeSheet({ onClose }) {
   const { settings } = useRecipes()
-  const [tab, setTab]       = useState('url')
-  const [url, setUrl]       = useState('')
-  const [text, setText]     = useState('')
+  const [tab, setTab]         = useState('url')
+  const [url, setUrl]         = useState('')
+  const [text, setText]       = useState('')
   const [loading, setLoading] = useState(false)
-  const [draft, setDraft]   = useState(null)
-  const fileRef             = useRef(null)
+  const [draft, setDraft]     = useState(null)
+  const [urlWarning, setUrlWarning] = useState(null)
+  const fileRef               = useRef(null)
 
   const preferred = settings.preferred_unit_system || 'metric'
 
+  function isBlockedSite(u) {
+    try {
+      const host = new URL(u).hostname.replace('www.', '')
+      return BLOCKED_SITES[host] ?? null
+    } catch { return null }
+  }
+
   async function handleUrlExtract() {
     if (!url.trim()) return
+    const blocked = isBlockedSite(url.trim())
+    if (blocked) {
+      setUrlWarning(blocked)
+      return
+    }
+    setUrlWarning(null)
     setLoading(true)
     try {
       const result = await ingestUrl(url.trim(), preferred)
@@ -124,19 +149,27 @@ export default function AddRecipeSheet({ onClose }) {
                 {/* URL tab */}
                 {tab === 'url' && (
                   <>
-                    <p className="text-sm text-[#8a6a50]">Paste a recipe URL and we'll extract it automatically.</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Paste a recipe URL and we'll extract it automatically.</p>
                     <input
                       className="input"
                       type="url"
-                      placeholder="https://www.example.com/chocolate-cake"
+                      placeholder="https://www.allrecipes.com/recipe/..."
                       value={url}
-                      onChange={e => setUrl(e.target.value)}
+                      onChange={e => { setUrl(e.target.value); setUrlWarning(null) }}
                       onKeyDown={e => e.key === 'Enter' && handleUrlExtract()}
                     />
+                    {urlWarning && (
+                      <div className="rounded-xl p-3 text-sm" style={{ background: 'color-mix(in srgb, var(--color-accent) 12%, transparent)', border: '1px solid var(--color-accent-soft)' }}>
+                        <p className="font-semibold mb-1" style={{ color: 'var(--color-accent)' }}>Can't extract from this site</p>
+                        <p style={{ color: 'var(--color-text)' }}>{urlWarning.reason}</p>
+                        <p className="mt-1.5" style={{ color: 'var(--color-text-muted)' }}><span className="font-medium">Tip:</span> {urlWarning.tip}</p>
+                      </div>
+                    )}
                     <button
                       onClick={handleUrlExtract}
                       disabled={!url.trim()}
-                      className="w-full py-3 bg-[#c2692f] text-white font-semibold rounded-xl disabled:opacity-40 hover:bg-[#a85426] transition-colors"
+                      className="w-full py-3 font-semibold rounded-xl disabled:opacity-40 transition-colors text-white"
+                      style={{ background: 'var(--color-accent)' }}
                     >
                       Extract Recipe
                     </button>
