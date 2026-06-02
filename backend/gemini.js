@@ -34,31 +34,54 @@ const UNIT_TO_G = {
 }
 
 // g per cup for common baking ingredients
+// Includes common adjective variants Gemini tends to produce
 const DENSITY_G_PER_CUP = {
-  'all-purpose flour': 120, 'bread flour': 120, 'cake flour': 100,
-  'whole wheat flour': 120, 'self-raising flour': 120, 'rye flour': 102,
-  'almond flour': 96, 'coconut flour': 112, 'oat flour': 92,
-  'rice flour': 158, 'cornstarch': 128, 'cornflour': 128,
-  'semolina': 167, 'spelt flour': 100,
-  'white sugar': 200, 'granulated sugar': 200, 'caster sugar': 200,
-  'superfine sugar': 200, 'icing sugar': 120, 'powdered sugar': 120,
-  'confectioners sugar': 120, 'brown sugar': 213, 'light brown sugar': 213,
-  'dark brown sugar': 213, 'raw sugar': 200, 'coconut sugar': 180,
-  'butter': 227, 'unsalted butter': 227, 'salted butter': 227,
-  'margarine': 227, 'shortening': 190, 'lard': 205,
-  'vegetable oil': 218, 'olive oil': 216, 'coconut oil': 218,
-  'rolled oats': 90, 'oats': 90, 'quick oats': 85,
-  'breadcrumbs': 108, 'panko': 54, 'desiccated coconut': 75,
-  'ground almonds': 96, 'chopped nuts': 114, 'chocolate chips': 170,
-  'cocoa powder': 85, 'baking powder': 192, 'baking soda': 230,
-  'salt': 273, 'fine salt': 273, 'kosher salt': 144,
-  'rice': 185, 'lentils': 192, 'dried beans': 190,
-  'peanut butter': 258, 'cream cheese': 232, 'ricotta': 246,
-  'honey': 340, 'maple syrup': 322, 'golden syrup': 340,
-  'molasses': 328, 'corn syrup': 328, 'agave': 333,
-  'milk': 244, 'whole milk': 244, 'buttermilk': 245,
-  'cream': 238, 'heavy cream': 238, 'whipping cream': 238,
-  'sour cream': 230, 'yogurt': 245, 'water': 237,
+  // Flours
+  'all-purpose flour': 120, 'plain flour': 120, 'flour': 120,
+  'bread flour': 120, 'cake flour': 100, 'self-raising flour': 120, 'self-rising flour': 120,
+  'whole wheat flour': 120, 'wholemeal flour': 120, 'rye flour': 102,
+  'almond flour': 96, 'almond meal': 96, 'coconut flour': 112,
+  'oat flour': 92, 'rice flour': 158, 'cornstarch': 128, 'cornflour': 128,
+  'semolina': 167, 'spelt flour': 100, 'tapioca flour': 120, 'arrowroot': 128,
+  // Sugars — packed/unpacked variants
+  'white sugar': 200, 'granulated sugar': 200, 'sugar': 200, 'caster sugar': 200, 'superfine sugar': 200,
+  'icing sugar': 120, 'powdered sugar': 120, 'confectioners sugar': 120, "confectioners' sugar": 120,
+  'brown sugar': 213, 'light brown sugar': 213, 'dark brown sugar': 213,
+  'packed brown sugar': 213, 'lightly packed brown sugar': 200, 'firmly packed brown sugar': 220,
+  'raw sugar': 200, 'demerara sugar': 200, 'coconut sugar': 180, 'muscovado sugar': 180,
+  // Chocolate
+  'chocolate chips': 170, 'semisweet chocolate chips': 170, 'semi-sweet chocolate chips': 170,
+  'dark chocolate chips': 170, 'milk chocolate chips': 170, 'white chocolate chips': 170,
+  'chocolate chunks': 170, 'chopped chocolate': 155,
+  'cocoa powder': 85, 'unsweetened cocoa powder': 85, 'dutch process cocoa': 85,
+  // Nuts
+  'chopped nuts': 114, 'chopped walnuts': 114, 'chopped pecans': 108, 'chopped almonds': 114,
+  'walnuts': 100, 'pecans': 99, 'almonds': 95, 'cashews': 130, 'peanuts': 146,
+  'ground almonds': 96, 'almond meal': 96, 'shredded coconut': 75, 'desiccated coconut': 75,
+  // Fats
+  'butter': 227, 'unsalted butter': 227, 'salted butter': 227, 'cold butter': 227, 'softened butter': 227,
+  'melted butter': 227, 'margarine': 227, 'shortening': 190, 'lard': 205,
+  'vegetable oil': 218, 'olive oil': 216, 'coconut oil': 218, 'canola oil': 218,
+  'sunflower oil': 218, 'avocado oil': 218,
+  // Oats & grains
+  'rolled oats': 90, 'oats': 90, 'old-fashioned oats': 90, 'quick oats': 85, 'instant oats': 85,
+  'breadcrumbs': 108, 'panko': 54, 'panko breadcrumbs': 54,
+  'rice': 185, 'uncooked rice': 185, 'lentils': 192, 'dried beans': 190,
+  // Dry pantry
+  'baking powder': 192, 'baking soda': 230, 'bicarbonate of soda': 230,
+  'salt': 273, 'fine salt': 273, 'table salt': 273, 'kosher salt': 144, 'sea salt': 288, 'flaky salt': 96,
+  'cream of tartar': 150,
+  // Dairy solid
+  'peanut butter': 258, 'almond butter': 250, 'tahini': 240,
+  'cream cheese': 232, 'ricotta': 246, 'mascarpone': 240,
+  // Liquids & syrups
+  'honey': 340, 'maple syrup': 322, 'golden syrup': 340, 'molasses': 328,
+  'corn syrup': 328, 'light corn syrup': 328, 'dark corn syrup': 328,
+  'agave': 333, 'agave nectar': 333, 'treacle': 340,
+  'milk': 244, 'whole milk': 244, 'skim milk': 245, 'buttermilk': 245,
+  'cream': 238, 'heavy cream': 238, 'whipping cream': 238, 'double cream': 238,
+  'sour cream': 230, 'yogurt': 245, 'greek yogurt': 245,
+  'water': 237, 'vanilla extract': 208,
 }
 
 // ─── Tool implementations ─────────────────────────────────────────────────────
@@ -66,6 +89,9 @@ const DENSITY_G_PER_CUP = {
 function toolConvertUnit(amount, fromUnit, toUnit) {
   const f = fromUnit.toLowerCase().trim()
   const t = toUnit.toLowerCase().trim()
+
+  // Same unit — no conversion needed
+  if (f === t) return { amount, unit: toUnit }
 
   // weight ↔ weight
   if (UNIT_TO_G[f] && UNIT_TO_G[t]) {
@@ -188,7 +214,8 @@ Convert ALL ingredients to the preferred system: weight → ${targetWeight}, vol
 
 RULES:
 - For each ingredient, use the appropriate tool to convert to the preferred unit.
-- tsp and tbsp: keep as-is (universally understood, do not convert).
+- tsp and tbsp: NEVER convert these — keep exactly as written. Do not call convert_unit on tsp or tbsp.
+- pinch, dash, smidgen: keep as-is, no conversion.
 - Counts with no unit (eggs, cloves, sheets): amount is the count, unit is "".
 - "to taste", "a handful", unquantified: amount is null.
 - Convert fraction strings: "1/2" → 0.5, "¾" → 0.75, "1 1/2" → 1.5.
