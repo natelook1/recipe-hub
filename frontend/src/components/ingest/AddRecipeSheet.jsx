@@ -7,10 +7,10 @@ import DraftEditor from './DraftEditor.jsx'
 import { showToast } from '../layout/Toast.jsx'
 
 const TABS = [
-  { id: 'url',    label: 'URL',    Icon: Link     },
-  { id: 'text',   label: 'Paste',  Icon: FileText },
-  { id: 'photo',  label: 'Photo',  Icon: Camera   },
   { id: 'manual', label: 'Manual', Icon: PenLine  },
+  { id: 'url',    label: 'URL',    Icon: Link,     soon: true },
+  { id: 'text',   label: 'Paste',  Icon: FileText, soon: true },
+  { id: 'photo',  label: 'Photo',  Icon: Camera,   soon: true },
 ]
 
 const EMPTY_DRAFT = {
@@ -20,7 +20,7 @@ const EMPTY_DRAFT = {
 
 export default function AddRecipeSheet({ onClose }) {
   const { settings } = useRecipes()
-  const [tab, setTab]       = useState('url')
+  const [tab, setTab]       = useState('manual')
   const [url, setUrl]       = useState('')
   const [text, setText]     = useState('')
   const [loading, setLoading] = useState(false)
@@ -100,18 +100,22 @@ export default function AddRecipeSheet({ onClose }) {
             <>
               {/* Tab bar */}
               <div className="flex border-b border-[#e8ddd0] px-4 flex-shrink-0">
-                {TABS.map(({ id, label, Icon }) => (
+                {TABS.map(({ id, label, Icon, soon }) => (
                   <button
                     key={id}
-                    onClick={() => setTab(id)}
-                    className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    onClick={() => !soon && setTab(id)}
+                    className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium border-b-2 transition-colors relative ${
                       tab === id
                         ? 'border-[#c2692f] text-[#c2692f]'
-                        : 'border-transparent text-[#8a6a50]'
+                        : soon
+                          ? 'border-transparent opacity-40 cursor-not-allowed'
+                          : 'border-transparent'
                     }`}
+                    style={{ color: tab === id ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
                   >
                     <Icon size={14} />
                     {label}
+                    {soon && <span className="text-[9px] leading-none ml-0.5 opacity-70">soon</span>}
                   </button>
                 ))}
               </div>

@@ -8,12 +8,14 @@ import RecipeDetail from './components/recipes/RecipeDetail.jsx'
 import AddRecipeSheet from './components/ingest/AddRecipeSheet.jsx'
 import SettingsPage from './components/settings/SettingsPage.jsx'
 import { useDarkMode } from './hooks/useDarkMode.js'
+import { useTheme } from './hooks/useTheme.js'
 
 export default function App() {
-  const [view, setView]             = useState('browse')
-  const [selectedId, setSelectedId] = useState(null)
-  const [showAdd, setShowAdd]       = useState(false)
-  const { dark, toggle: toggleDark } = useDarkMode()
+  const [view, setView]               = useState('browse')
+  const [selectedId, setSelectedId]   = useState(null)
+  const [showAdd, setShowAdd]         = useState(false)
+  const { dark, toggle: toggleDark }  = useDarkMode()
+  const theme                         = useTheme(dark)
 
   function handleSelect(id) {
     setSelectedId(id)
@@ -36,12 +38,12 @@ export default function App() {
   return (
     <RecipeProvider>
       <div className="flex flex-col h-full" style={{ background: 'var(--color-bg)' }}>
-        {showHeader && <Header dark={dark} onToggleDark={toggleDark} />}
+        {showHeader && <Header />}
 
         <main className="flex-1 overflow-y-auto">
-          {view === 'browse'   && <RecipeBrowser onSelect={handleSelect} />}
+          {view === 'browse'   && <RecipeBrowser onSelect={handleSelect} onAdd={() => setShowAdd(true)} />}
           {view === 'detail'   && <RecipeDetail recipeId={selectedId} onBack={handleBack} />}
-          {view === 'settings' && <SettingsPage />}
+          {view === 'settings' && <SettingsPage dark={dark} onToggleDark={toggleDark} theme={theme} />}
         </main>
 
         <BottomNav view={view} onNav={handleNav} />

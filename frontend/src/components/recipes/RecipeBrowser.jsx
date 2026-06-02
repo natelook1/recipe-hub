@@ -1,15 +1,15 @@
 import { useRecipes } from '../../context/RecipeContext.jsx'
 import RecipeCard from './RecipeCard.jsx'
 import TagFilter from '../search/TagFilter.jsx'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, PlusCircle } from 'lucide-react'
 
-export default function RecipeBrowser({ onSelect }) {
+export default function RecipeBrowser({ onSelect, onAdd }) {
   const { recipes, loading, searchQuery, activeTag } = useRecipes()
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-48 text-[#8a6a50]">
-        <div className="spinner w-6 h-6 border-2 border-[#c2692f] border-t-transparent rounded-full" />
+      <div className="flex items-center justify-center h-48">
+        <div className="spinner w-6 h-6 border-2 border-t-transparent rounded-full" style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }} />
       </div>
     )
   }
@@ -20,7 +20,7 @@ export default function RecipeBrowser({ onSelect }) {
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {recipes.length === 0 ? (
-          <EmptyState query={searchQuery} tag={activeTag} />
+          <EmptyState query={searchQuery} tag={activeTag} onAdd={onAdd} />
         ) : (
           <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-3">
             {recipes.map((r, i) => (
@@ -35,21 +35,31 @@ export default function RecipeBrowser({ onSelect }) {
   )
 }
 
-function EmptyState({ query, tag }) {
+function EmptyState({ query, tag, onAdd }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <BookOpen size={48} className="text-[#e8ddd0] mb-4" />
+    <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+      <BookOpen size={48} className="mb-4" style={{ color: 'var(--color-border)' }} />
       {query || tag ? (
         <>
-          <p className="text-[#2c1a0e] font-medium">No recipes found</p>
-          <p className="text-[#8a6a50] text-sm mt-1">Try a different search or tag</p>
+          <p className="font-medium" style={{ color: 'var(--color-text)' }}>No recipes found</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>Try a different search or tag</p>
         </>
       ) : (
         <>
-          <p className="text-[#2c1a0e] font-medium" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <p className="font-semibold text-lg" style={{ fontFamily: "'Playfair Display', serif", color: 'var(--color-text)' }}>
             Your recipe collection is empty
           </p>
-          <p className="text-[#8a6a50] text-sm mt-1">Tap + to add your first recipe</p>
+          <p className="text-sm mt-2" style={{ color: 'var(--color-text-muted)' }}>
+            Add your first recipe to get started
+          </p>
+          <button
+            onClick={onAdd}
+            className="mt-6 flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-white transition-colors"
+            style={{ background: 'var(--color-accent)' }}
+          >
+            <PlusCircle size={16} />
+            Add a Recipe
+          </button>
         </>
       )}
     </div>

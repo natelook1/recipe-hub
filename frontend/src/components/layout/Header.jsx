@@ -1,7 +1,7 @@
-import { Search, X, Sun, Moon } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useRecipes } from '../../context/RecipeContext.jsx'
 
-export default function Header({ dark, onToggleDark }) {
+export default function Header() {
   const { searchQuery, setSearchQuery, setActiveTag } = useRecipes()
 
   function handleClear() {
@@ -28,13 +28,6 @@ export default function Header({ dark, onToggleDark }) {
             </button>
           )}
         </div>
-        <button
-          onClick={onToggleDark}
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-          style={{ background: 'var(--color-surface)', color: 'var(--color-text-muted)' }}
-        >
-          {dark ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
       </div>
     </header>
   )
