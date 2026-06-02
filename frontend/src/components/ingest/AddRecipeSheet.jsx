@@ -8,8 +8,8 @@ import { showToast } from '../layout/Toast.jsx'
 
 const TABS = [
   { id: 'url',    label: 'URL',    Icon: Link     },
+  { id: 'text',   label: 'Paste',  Icon: FileText },
   { id: 'manual', label: 'Manual', Icon: PenLine  },
-  { id: 'text',   label: 'Paste',  Icon: FileText, soon: true },
   { id: 'photo',  label: 'Photo',  Icon: Camera,   soon: true },
 ]
 
