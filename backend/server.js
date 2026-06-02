@@ -189,6 +189,26 @@ app.get('/api/recipes/:id/image', auth, (req, res) => {
   res.sendFile(full)
 })
 
+app.post('/api/recipes/:id/image', auth, upload.single('file'), (req, res) => {
+  const recipe = db.prepare('SELECT id, image_path FROM recipes WHERE id = ?').get(req.params.id)
+  if (!recipe) return res.status(404).json({ error: 'Not found' })
+  if (!req.file) return res.status(400).json({ error: 'file required' })
+
+  // Delete old image if exists
+  if (recipe.image_path) {
+    try { fs.unlinkSync(path.join(IMAGE_PATH, recipe.image_path)) } catch {}
+  }
+
+  const ext      = req.file.mimetype.split('/')[1] || 'jpg'
+  const filename = `${recipe.id}.${ext}`
+  fs.writeFileSync(path.join(IMAGE_PATH, filename), req.file.buffer)
+
+  db.prepare('UPDATE recipes SET image_path = ?, updated_at = ? WHERE id = ?')
+    .run(filename, Date.now(), recipe.id)
+
+  res.json({ ok: true, image_path: filename })
+})
+
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 app.get('/api/settings', auth, (req, res) => {
