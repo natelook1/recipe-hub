@@ -324,9 +324,19 @@ function extractJsonLd(html) {
 }
 
 function extractOgImage(html) {
-  const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+  // Prefer og:image / twitter:image meta tags
+  const meta = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
             || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-  return match ? match[1] : null
+            || html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
+            || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i)
+  if (meta) return meta[1]
+
+  // Fall back to first <img> that looks like recipe content (not a logo/icon)
+  const SKIP = /logo|icon|avatar|gravatar|sprite|banner|badge|pixel|tracking|cropped/i
+  const imgs = [...html.matchAll(/<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp))["']/gi)]
+    .map(m => m[1])
+    .filter(s => !SKIP.test(s))
+  return imgs[0] || null
 }
 
 function htmlToText(html) {
