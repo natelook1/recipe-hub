@@ -10,7 +10,7 @@ const TABS = [
   { id: 'url',    label: 'URL',    Icon: Link     },
   { id: 'text',   label: 'Paste',  Icon: FileText },
   { id: 'manual', label: 'Manual', Icon: PenLine  },
-  { id: 'photo',  label: 'Photo',  Icon: Camera,   soon: true },
+  { id: 'photo',  label: 'Photo',  Icon: Camera },
 ]
 
 const EMPTY_DRAFT = {
