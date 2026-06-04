@@ -370,6 +370,8 @@ let suggestionsCache = null
 let suggestionsCachedAt = 0
 const SUGGESTIONS_TTL = 2 * 60 * 60 * 1000 // 2 hours
 
+const ROUNDUP_RE = /\b(\d+\+?\s+(recipes?|ideas?|ways?|dishes?|meals?|tips?|things?)|best\s+\d+|round.?up|collection|weekly\s+menu|meal\s+plan|what\s+to\s+cook)\b/i
+
 function parseRssItems(xml, sourceName) {
   const items = []
   const rx = /<item>([\s\S]*?)<\/item>/g
@@ -383,9 +385,11 @@ function parseRssItems(xml, sourceName) {
               || block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image/i)?.[1]
     const rawDesc = block.match(/<description>([\s\S]*?)<\/description>/i)?.[1] || ''
     const desc = rawDesc.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim().slice(0, 200)
-    const cats = [...block.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)]
+    const cats = [...block.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\?\]>)?<\/category>/gi)]
       .map(c => c[1].toLowerCase().trim())
-    if (title && link) items.push({ title, link, image: image || null, description: desc, categories: cats, source: sourceName })
+    if (title && link && !ROUNDUP_RE.test(title)) {
+      items.push({ title, link, image: image || null, description: desc, categories: cats, source: sourceName })
+    }
   }
   return items
 }
@@ -451,23 +455,20 @@ app.get('/api/suggestions', auth, async (req, res) => {
 })
 
 app.post('/api/suggestions/save', auth, async (req, res) => {
-  const { url, title } = req.body
+  const { url } = req.body
   if (!url) return res.status(400).json({ error: 'url required' })
   try {
-    const pageRes = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
-    const html    = await pageRes.text()
+    const settings = db.prepare('SELECT preferred_unit FROM settings WHERE id = 1').get()
+    const preferredUnit = settings?.preferred_unit || 'metric'
 
-    // Extract og:image
-    const imgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                  || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-    const imgUrl  = imgMatch?.[1] || null
+    const draft = await extractFromUrl(url, preferredUnit)
 
     const id = uuidv4()
     let imagePath = ''
 
-    if (imgUrl) {
+    if (draft.source_image_url) {
       try {
-        const imgRes = await fetch(imgUrl, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
+        const imgRes = await fetch(draft.source_image_url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
         if (imgRes.ok) {
           const cType = imgRes.headers.get('content-type') || 'image/jpeg'
           const ext   = cType.split('/')[1]?.split(';')[0] || 'jpg'
@@ -479,25 +480,7 @@ app.post('/api/suggestions/save', auth, async (req, res) => {
       } catch {}
     }
 
-    // Extract JSON-LD for a richer title/description if available
-    const jsonLdMatch = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i)
-    let recipeTitle = title || 'Untitled Recipe'
-    let description = ''
-    if (jsonLdMatch) {
-      try {
-        const ld = JSON.parse(jsonLdMatch[1])
-        const recipe = Array.isArray(ld) ? ld.find(i => i['@type'] === 'Recipe') : ld['@type'] === 'Recipe' ? ld : null
-        if (recipe) {
-          recipeTitle = recipe.name || recipeTitle
-          description = recipe.description || ''
-        }
-      } catch {}
-    }
-
-    db.prepare(`INSERT INTO recipes (id, title, description, servings, prep_time, cook_time, tags, image_path, source_url, source_type, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'url', datetime('now'), datetime('now'))`)
-      .run(id, recipeTitle, description, 4, null, null, '[]', imagePath, url)
-
+    saveRecipe(id, { ...draft, image_path: imagePath, source_url: url, source_type: 'url' }, draft.ingredients)
     res.status(201).json({ id })
   } catch (e) {
     console.error('[suggestions/save]', e.message)
