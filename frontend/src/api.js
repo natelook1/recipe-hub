@@ -44,6 +44,10 @@ export const ingestText = (text, preferredUnit) =>
 export const ingestConfirm = (draft) =>
   request('POST', '/api/ingest/confirm', draft)
 
+// Suggestions
+export const getSuggestions  = ()    => request('GET', '/api/suggestions')
+export const saveSuggestion  = (url, title) => request('POST', '/api/suggestions/save', { url, title })
+
 export async function ingestPhoto(file, preferredUnit) {
   const form = new FormData()
   form.append('file', file)

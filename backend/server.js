@@ -351,6 +351,160 @@ app.delete('/api/recipes/:id', auth, (req, res) => {
   res.json({ ok: true })
 })
 
+// ─── Suggestions ─────────────────────────────────────────────────────────────
+
+const SUGGESTION_SOURCES = [
+  { name: 'Delish',            url: 'https://www.delish.com/rss/all.xml/' },
+  { name: 'Bon Appétit',       url: 'https://www.bonappetit.com/feed/rss' },
+  { name: 'Budget Bytes',      url: 'https://www.budgetbytes.com/feed/' },
+  { name: 'Damn Delicious',    url: 'https://damndelicious.net/feed/' },
+  { name: 'Half Baked Harvest',url: 'https://www.halfbakedharvest.com/feed/' },
+  { name: 'Pinch of Yum',      url: 'https://pinchofyum.com/feed' },
+  { name: "Sally's Baking",    url: 'https://sallysbakingaddiction.com/feed/' },
+  { name: 'RecipeTin Eats',    url: 'https://www.recipetineats.com/feed/' },
+]
+
+const FETCH_HEADERS = { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeHub/1.0; +https://recipes.looknet.ca)' }
+
+let suggestionsCache = null
+let suggestionsCachedAt = 0
+const SUGGESTIONS_TTL = 2 * 60 * 60 * 1000 // 2 hours
+
+function parseRssItems(xml, sourceName) {
+  const items = []
+  const rx = /<item>([\s\S]*?)<\/item>/g
+  let m
+  while ((m = rx.exec(xml)) !== null) {
+    const block = m[1]
+    const title = block.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i)?.[1]?.trim()
+    const link  = block.match(/<link>([\s\S]*?)<\/link>/i)?.[1]?.trim()
+              || block.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1]?.trim()
+    const image = block.match(/<media:(?:content|thumbnail)[^>]+url=["']([^"']+)["']/i)?.[1]
+              || block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image/i)?.[1]
+    const rawDesc = block.match(/<description>([\s\S]*?)<\/description>/i)?.[1] || ''
+    const desc = rawDesc.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim().slice(0, 200)
+    const cats = [...block.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/category>/gi)]
+      .map(c => c[1].toLowerCase().trim())
+    if (title && link) items.push({ title, link, image: image || null, description: desc, categories: cats, source: sourceName })
+  }
+  return items
+}
+
+async function fetchSuggestions(userTags) {
+  const results = []
+  await Promise.allSettled(
+    SUGGESTION_SOURCES.map(async ({ name, url }) => {
+      try {
+        const r = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(8000) })
+        if (!r.ok) return
+        const xml = await r.text()
+        results.push(...parseRssItems(xml, name))
+      } catch {}
+    })
+  )
+
+  // Score each item by how many user tags appear in its title+categories
+  const tagSet = new Set(userTags.map(t => t.toLowerCase()))
+  const scored = results.map(item => {
+    const text = (item.title + ' ' + item.categories.join(' ')).toLowerCase()
+    let score = 0
+    for (const tag of tagSet) if (text.includes(tag)) score++
+    return { ...item, score }
+  })
+
+  // Sort: matching items first (by score desc), then remainder; dedupe by link
+  scored.sort((a, b) => b.score - a.score)
+  const seen = new Set()
+  return scored.filter(item => { if (seen.has(item.link)) return false; seen.add(item.link); return true })
+}
+
+app.get('/api/suggestions', auth, async (req, res) => {
+  try {
+    // Get top tags from last 50 recipes
+    const rows = db.prepare('SELECT tags FROM recipes ORDER BY created_at DESC LIMIT 50').all()
+    const tagFreq = {}
+    for (const row of rows) {
+      const tags = JSON.parse(row.tags || '[]')
+      for (const tag of tags) tagFreq[tag] = (tagFreq[tag] || 0) + 1
+    }
+    const userTags = Object.entries(tagFreq).sort((a, b) => b[1] - a[1]).slice(0, 15).map(e => e[0])
+
+    if (!suggestionsCache || Date.now() - suggestionsCachedAt > SUGGESTIONS_TTL) {
+      suggestionsCache = await fetchSuggestions(userTags)
+      suggestionsCachedAt = Date.now()
+    }
+
+    // Re-score against current userTags in case library changed but cache is fresh
+    const tagSet = new Set(userTags.map(t => t.toLowerCase()))
+    const rescored = suggestionsCache.map(item => {
+      const text = (item.title + ' ' + item.categories.join(' ')).toLowerCase()
+      let score = 0
+      for (const tag of tagSet) if (text.includes(tag)) score++
+      return { ...item, score }
+    }).sort((a, b) => b.score - a.score)
+
+    res.json({ suggestions: rescored, userTags })
+  } catch (e) {
+    console.error('[suggestions]', e.message)
+    res.status(500).json({ error: 'failed to fetch suggestions' })
+  }
+})
+
+app.post('/api/suggestions/save', auth, async (req, res) => {
+  const { url, title } = req.body
+  if (!url) return res.status(400).json({ error: 'url required' })
+  try {
+    const pageRes = await fetch(url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
+    const html    = await pageRes.text()
+
+    // Extract og:image
+    const imgMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                  || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+    const imgUrl  = imgMatch?.[1] || null
+
+    const id = uuidv4()
+    let imagePath = ''
+
+    if (imgUrl) {
+      try {
+        const imgRes = await fetch(imgUrl, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
+        if (imgRes.ok) {
+          const cType = imgRes.headers.get('content-type') || 'image/jpeg'
+          const ext   = cType.split('/')[1]?.split(';')[0] || 'jpg'
+          const buf   = Buffer.from(await imgRes.arrayBuffer())
+          const fname = `${id}.${ext}`
+          fs.writeFileSync(path.join(IMAGE_PATH, fname), buf)
+          imagePath = fname
+        }
+      } catch {}
+    }
+
+    // Extract JSON-LD for a richer title/description if available
+    const jsonLdMatch = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i)
+    let recipeTitle = title || 'Untitled Recipe'
+    let description = ''
+    if (jsonLdMatch) {
+      try {
+        const ld = JSON.parse(jsonLdMatch[1])
+        const recipe = Array.isArray(ld) ? ld.find(i => i['@type'] === 'Recipe') : ld['@type'] === 'Recipe' ? ld : null
+        if (recipe) {
+          recipeTitle = recipe.name || recipeTitle
+          description = recipe.description || ''
+        }
+      } catch {}
+    }
+
+    db.prepare(`INSERT INTO recipes (id, title, description, servings, prep_time, cook_time, tags, image_path, source_url, source_type, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'url', datetime('now'), datetime('now'))`)
+      .run(id, recipeTitle, description, 4, null, null, '[]', imagePath, url)
+
+    res.status(201).json({ id })
+  } catch (e) {
+    console.error('[suggestions/save]', e.message)
+    res.status(422).json({ error: 'save_failed', message: e.message })
+  }
+})
+
 // ─── Ingest ───────────────────────────────────────────────────────────────────
 
 app.post('/api/ingest/url', auth, async (req, res) => {

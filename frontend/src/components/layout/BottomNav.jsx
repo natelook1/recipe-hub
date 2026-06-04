@@ -1,7 +1,8 @@
-import { BookOpen, PlusCircle, ArrowLeftRight, Settings } from 'lucide-react'
+import { BookOpen, PlusCircle, ArrowLeftRight, Settings, Compass } from 'lucide-react'
 
 const NAV = [
   { id: 'browse',    label: 'Recipes',   Icon: BookOpen        },
+  { id: 'discover',  label: 'Discover',  Icon: Compass         },
   { id: 'add',       label: 'Add',       Icon: PlusCircle      },
   { id: 'converter', label: 'Convert',   Icon: ArrowLeftRight  },
   { id: 'settings',  label: 'Settings',  Icon: Settings        },
