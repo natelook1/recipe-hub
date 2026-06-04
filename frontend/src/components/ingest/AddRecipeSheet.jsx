@@ -38,6 +38,7 @@ export default function AddRecipeSheet({ onClose }) {
   const [draft, setDraft]     = useState(null)
   const [urlWarning, setUrlWarning] = useState(null)
   const fileRef               = useRef(null)
+  const galleryRef            = useRef(null)
 
   const preferred = settings.preferred_unit_system || 'metric'
 
@@ -188,14 +189,24 @@ export default function AddRecipeSheet({ onClose }) {
               {tab === 'photo' && (
                 <>
                   <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Take a photo or upload an image of a recipe card or cookbook page.</p>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                  <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
                     onChange={e => e.target.files?.[0] && handlePhotoExtract(e.target.files[0])} />
-                  <button onClick={() => fileRef.current?.click()}
-                    className="w-full py-10 border-2 border-dashed rounded-xl flex flex-col items-center gap-2 transition-colors"
-                    style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
-                    <Camera size={32} />
-                    <span className="text-sm font-medium">Take photo or choose image</span>
-                  </button>
+                  <input ref={galleryRef} type="file" accept="image/*" className="hidden"
+                    onChange={e => e.target.files?.[0] && handlePhotoExtract(e.target.files[0])} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <button onClick={() => fileRef.current?.click()}
+                      className="py-8 border-2 border-dashed rounded-xl flex flex-col items-center gap-2 transition-colors"
+                      style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                      <Camera size={28} />
+                      <span className="text-sm font-medium">Take Photo</span>
+                    </button>
+                    <button onClick={() => galleryRef.current?.click()}
+                      className="py-8 border-2 border-dashed rounded-xl flex flex-col items-center gap-2 transition-colors"
+                      style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                      <FileText size={28} />
+                      <span className="text-sm font-medium">Choose File</span>
+                    </button>
+                  </div>
                 </>
               )}
 
