@@ -390,18 +390,31 @@ app.post('/api/ingest/photo', auth, upload.single('file'), async (req, res) => {
 })
 
 app.post('/api/ingest/confirm', auth, async (req, res) => {
-  const { ingredients, image_buffer, image_mime, ...data } = req.body
+  const { ingredients, image_buffer, image_mime, source_image_url, ...data } = req.body
   if (!data.title) return res.status(400).json({ error: 'title required' })
 
   const id = uuidv4()
   let imagePath = ''
 
-  // If a base64 image was provided (e.g. from photo ingestion)
   if (image_buffer && image_mime) {
     const ext = image_mime.split('/')[1] || 'jpg'
     const filename = `${id}.${ext}`
     fs.writeFileSync(path.join(IMAGE_PATH, filename), Buffer.from(image_buffer, 'base64'))
     imagePath = filename
+  } else if (source_image_url) {
+    try {
+      const imgRes = await fetch(source_image_url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeHub/1.0)' } })
+      if (imgRes.ok) {
+        const contentType = imgRes.headers.get('content-type') || 'image/jpeg'
+        const ext = contentType.split('/')[1]?.split(';')[0] || 'jpg'
+        const filename = `${id}.${ext}`
+        const buf = Buffer.from(await imgRes.arrayBuffer())
+        fs.writeFileSync(path.join(IMAGE_PATH, filename), buf)
+        imagePath = filename
+      }
+    } catch (e) {
+      console.warn('[ingest/confirm] Failed to fetch source image:', e.message)
+    }
   }
 
   saveRecipe(id, { ...data, image_path: imagePath }, ingredients)

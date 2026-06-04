@@ -323,6 +323,12 @@ function extractJsonLd(html) {
   try { return JSON.stringify(JSON.parse(match[1])) } catch { return null }
 }
 
+function extractOgImage(html) {
+  const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+            || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
+  return match ? match[1] : null
+}
+
 function htmlToText(html) {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -345,8 +351,9 @@ async function extractFromUrl(url, preferredSystem = 'metric') {
   const res  = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RecipeHub/1.0)' } })
   const html = await res.text()
 
-  const jsonLd = extractJsonLd(html)
-  const text   = htmlToText(html).slice(0, 12000)
+  const jsonLd          = extractJsonLd(html)
+  const sourceImageUrl  = extractOgImage(html)
+  const text            = htmlToText(html).slice(0, 12000)
 
   const userContent = jsonLd
     ? `Structured data (prefer this):\n${jsonLd.slice(0, 4000)}\n\nPage text (supplement only):\n${text}`
@@ -356,7 +363,9 @@ async function extractFromUrl(url, preferredSystem = 'metric') {
     { role: 'user', parts: [{ text: buildSystemPrompt(preferredSystem) + '\n\n' + userContent }] },
   ]
 
-  return runWithTools(model, contents)
+  const draft = await runWithTools(model, contents)
+  if (sourceImageUrl) draft.source_image_url = sourceImageUrl
+  return draft
 }
 
 async function extractFromText(text, preferredSystem = 'metric') {

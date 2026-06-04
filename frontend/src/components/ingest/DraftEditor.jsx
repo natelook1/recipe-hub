@@ -51,6 +51,13 @@ export default function DraftEditor({ draft, onClose }) {
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-8">
+      {/* Source image preview */}
+      {form.source_image_url && (
+        <div className="rounded-xl overflow-hidden h-40 w-full">
+          <img src={form.source_image_url} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
+
       {/* Title */}
       <div>
         <label className="label">Title</label>
@@ -94,18 +101,18 @@ export default function DraftEditor({ draft, onClose }) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="label mb-0">Ingredients</label>
-          <button onClick={addIngredient} className="text-xs text-[#c2692f] font-medium flex items-center gap-1">
+          <button onClick={addIngredient} className="text-xs text-[var(--color-accent)] font-medium flex items-center gap-1">
             <Plus size={14} /> Add
           </button>
         </div>
         <div className="space-y-2">
           {(form.ingredients || []).map((ing, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <GripVertical size={16} className="mt-2.5 text-[#e8ddd0] flex-shrink-0" />
+              <GripVertical size={16} className="mt-2.5 text-[var(--color-border)] flex-shrink-0" />
               <input className="input w-16 flex-shrink-0" placeholder="Qty" value={ing.amount ?? ''} onChange={e => setIngField(i, 'amount', e.target.value)} />
               <input className="input w-16 flex-shrink-0" placeholder="Unit" value={ing.unit ?? ''} onChange={e => setIngField(i, 'unit', e.target.value)} />
               <input className="input flex-1" placeholder="Ingredient name" value={ing.name ?? ''} onChange={e => setIngField(i, 'name', e.target.value)} />
-              <button onClick={() => removeIngredient(i)} className="mt-2 text-[#e8ddd0] hover:text-red-400 flex-shrink-0">
+              <button onClick={() => removeIngredient(i)} className="mt-2 text-[var(--color-border)] hover:text-red-400 flex-shrink-0">
                 <X size={16} />
               </button>
             </div>
@@ -117,14 +124,14 @@ export default function DraftEditor({ draft, onClose }) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="label mb-0">Instructions</label>
-          <button onClick={addStep} className="text-xs text-[#c2692f] font-medium flex items-center gap-1">
+          <button onClick={addStep} className="text-xs text-[var(--color-accent)] font-medium flex items-center gap-1">
             <Plus size={14} /> Add step
           </button>
         </div>
         <div className="space-y-2">
           {(form.steps || []).map((step, i) => (
             <div key={i} className="flex gap-2 items-start">
-              <span className="mt-2 w-6 h-6 rounded-full bg-[#f2d4c1] text-[#c2692f] text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
+              <span className="mt-2 w-6 h-6 rounded-full bg-[var(--color-accent-muted)] text-[var(--color-accent)] text-xs font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
               <textarea
                 className="input flex-1 resize-none"
                 rows={2}
@@ -132,7 +139,7 @@ export default function DraftEditor({ draft, onClose }) {
                 onChange={e => setStep(i, e.target.value)}
                 placeholder={`Step ${i + 1}`}
               />
-              <button onClick={() => removeStep(i)} className="mt-2 text-[#e8ddd0] hover:text-red-400 flex-shrink-0">
+              <button onClick={() => removeStep(i)} className="mt-2 text-[var(--color-border)] hover:text-red-400 flex-shrink-0">
                 <X size={16} />
               </button>
             </div>
@@ -144,7 +151,8 @@ export default function DraftEditor({ draft, onClose }) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full py-3 bg-[#c2692f] text-white font-semibold rounded-xl hover:bg-[#a85426] transition-colors disabled:opacity-60"
+        className="w-full py-3 font-semibold rounded-xl text-white transition-colors disabled:opacity-60"
+        style={{ background: 'var(--color-accent)' }}
       >
         {saving ? 'Saving…' : 'Save Recipe'}
       </button>
