@@ -458,8 +458,8 @@ app.get('/api/suggestions', auth, async (req, res) => {
 app.post('/api/suggestions/extract', auth, async (req, res) => {
   const { url } = req.body
   if (!url) return res.status(400).json({ error: 'url required' })
-  const settings = db.prepare('SELECT preferred_unit FROM settings WHERE id = 1').get()
-  const preferredUnit = settings?.preferred_unit || 'metric'
+  let preferredUnit = 'metric'
+  try { preferredUnit = db.prepare('SELECT preferred_unit FROM settings WHERE id = 1').get()?.preferred_unit || 'metric' } catch {}
   try {
     const draft = await extractFromUrl(url, preferredUnit)
     res.json(draft)
