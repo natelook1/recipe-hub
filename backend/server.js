@@ -454,38 +454,42 @@ app.get('/api/suggestions', auth, async (req, res) => {
   }
 })
 
-app.post('/api/suggestions/save', auth, async (req, res) => {
+// Extract full recipe via Gemini — client holds connection open; closing it aborts work
+app.post('/api/suggestions/extract', auth, async (req, res) => {
   const { url } = req.body
   if (!url) return res.status(400).json({ error: 'url required' })
+  const settings = db.prepare('SELECT preferred_unit FROM settings WHERE id = 1').get()
+  const preferredUnit = settings?.preferred_unit || 'metric'
   try {
-    const settings = db.prepare('SELECT preferred_unit FROM settings WHERE id = 1').get()
-    const preferredUnit = settings?.preferred_unit || 'metric'
-
     const draft = await extractFromUrl(url, preferredUnit)
-
-    const id = uuidv4()
-    let imagePath = ''
-
-    if (draft.source_image_url) {
-      try {
-        const imgRes = await fetch(draft.source_image_url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
-        if (imgRes.ok) {
-          const cType = imgRes.headers.get('content-type') || 'image/jpeg'
-          const ext   = cType.split('/')[1]?.split(';')[0] || 'jpg'
-          const buf   = Buffer.from(await imgRes.arrayBuffer())
-          const fname = `${id}.${ext}`
-          fs.writeFileSync(path.join(IMAGE_PATH, fname), buf)
-          imagePath = fname
-        }
-      } catch {}
-    }
-
-    saveRecipe(id, { ...draft, image_path: imagePath, source_url: url, source_type: 'url' }, draft.ingredients)
-    res.status(201).json({ id })
+    res.json(draft)
   } catch (e) {
-    console.error('[suggestions/save]', e.message)
-    res.status(422).json({ error: 'save_failed', message: e.message })
+    console.error('[suggestions/extract]', e.message)
+    res.status(422).json({ error: 'extraction_failed', message: e.message })
   }
+})
+
+// Save a fully-extracted draft directly — no Gemini, instant write
+app.post('/api/suggestions/save', auth, async (req, res) => {
+  const { draft, source_url, source_image_url } = req.body
+  if (!draft?.title) return res.status(400).json({ error: 'draft with title required' })
+  const id = uuidv4()
+  let imagePath = ''
+  if (source_image_url) {
+    try {
+      const imgRes = await fetch(source_image_url, { headers: FETCH_HEADERS, signal: AbortSignal.timeout(10000) })
+      if (imgRes.ok) {
+        const cType = imgRes.headers.get('content-type') || 'image/jpeg'
+        const ext   = cType.split('/')[1]?.split(';')[0] || 'jpg'
+        const buf   = Buffer.from(await imgRes.arrayBuffer())
+        const fname = `${id}.${ext}`
+        fs.writeFileSync(path.join(IMAGE_PATH, fname), buf)
+        imagePath = fname
+      }
+    } catch {}
+  }
+  saveRecipe(id, { ...draft, image_path: imagePath, source_url: source_url || '', source_type: 'url' }, draft.ingredients || [])
+  res.status(201).json({ id })
 })
 
 // ─── Ingest ───────────────────────────────────────────────────────────────────

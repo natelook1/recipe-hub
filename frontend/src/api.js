@@ -45,8 +45,25 @@ export const ingestConfirm = (draft) =>
   request('POST', '/api/ingest/confirm', draft)
 
 // Suggestions
-export const getSuggestions  = ()    => request('GET', '/api/suggestions')
-export const saveSuggestion  = (url, title) => request('POST', '/api/suggestions/save', { url, title })
+export const getSuggestions = () => request('GET', '/api/suggestions')
+
+export function extractSuggestion(url, signal) {
+  return fetch(`${BASE}/api/suggestions/extract`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ url }),
+    signal,
+  }).then(async res => {
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error(err.error || res.statusText)
+    }
+    return res.json()
+  })
+}
+
+export const saveSuggestion = (draft, source_url, source_image_url) =>
+  request('POST', '/api/suggestions/save', { draft, source_url, source_image_url })
 
 export async function ingestPhoto(file, preferredUnit) {
   const form = new FormData()

@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react'
-import { BookmarkPlus, RefreshCw, ExternalLink } from 'lucide-react'
-import { getSuggestions, saveSuggestion } from '../../api.js'
-import { useRecipes } from '../../context/RecipeContext.jsx'
+import { RefreshCw, ExternalLink, ChevronRight } from 'lucide-react'
+import { getSuggestions } from '../../api.js'
 import { showToast } from '../layout/Toast.jsx'
+import SuggestionPreviewSheet from './SuggestionPreviewSheet.jsx'
 
 export default function DiscoverPage() {
-  const { reload }                      = useRecipes()
   const [suggestions, setSuggestions]   = useState([])
   const [userTags, setUserTags]         = useState([])
   const [loading, setLoading]           = useState(true)
-  const [saving, setSaving]             = useState(null) // link being saved
+  const [selected, setSelected]         = useState(null) // item being previewed
   const [saved, setSaved]               = useState(new Set())
 
   async function load() {
@@ -18,7 +17,7 @@ export default function DiscoverPage() {
       const data = await getSuggestions()
       setSuggestions(data.suggestions)
       setUserTags(data.userTags)
-    } catch (e) {
+    } catch {
       showToast('Could not load suggestions', 'error')
     } finally {
       setLoading(false)
@@ -27,19 +26,19 @@ export default function DiscoverPage() {
 
   useEffect(() => { load() }, [])
 
-  async function handleSave(item) {
-    if (saved.has(item.link) || saving) return
-    setSaving(item.link)
-    try {
-      await saveSuggestion(item.link, item.title)
-      setSaved(s => new Set([...s, item.link]))
-      reload()
-      showToast('Added to your recipes!')
-    } catch (e) {
-      showToast('Failed to save recipe', 'error')
-    } finally {
-      setSaving(null)
-    }
+  function handleSaved(link) {
+    setSaved(s => new Set([...s, link]))
+    setSelected(null)
+  }
+
+  if (selected) {
+    return (
+      <SuggestionPreviewSheet
+        item={selected}
+        onClose={() => setSelected(null)}
+        onSaved={() => handleSaved(selected.link)}
+      />
+    )
   }
 
   return (
@@ -77,8 +76,7 @@ export default function DiscoverPage() {
               key={item.link}
               item={item}
               isSaved={saved.has(item.link)}
-              isSaving={saving === item.link}
-              onSave={() => handleSave(item)}
+              onSelect={() => !saved.has(item.link) && setSelected(item)}
             />
           ))}
           {suggestions.length === 0 && (
@@ -92,47 +90,38 @@ export default function DiscoverPage() {
   )
 }
 
-function SuggestionCard({ item, isSaved, isSaving, onSave }) {
+function SuggestionCard({ item, isSaved, onSelect }) {
   return (
-    <div className="rounded-2xl overflow-hidden border" style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}>
+    <button
+      onClick={onSelect}
+      disabled={isSaved}
+      className="w-full text-left rounded-2xl overflow-hidden border transition-opacity disabled:opacity-50"
+      style={{ background: 'var(--color-bg-card)', borderColor: 'var(--color-border)' }}>
       {item.image && (
         <div className="h-44 w-full overflow-hidden">
           <img src={item.image} alt={item.title} className="w-full h-full object-cover" loading="lazy"
             onError={e => { e.target.parentElement.style.display = 'none' }} />
         </div>
       )}
-      <div className="p-3 flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-accent)' }}>{item.source}</p>
-            <h3 className="font-semibold leading-snug" style={{ color: 'var(--color-text)', fontFamily: 'Playfair Display, serif' }}>
-              {item.title}
-            </h3>
-          </div>
-          <a href={item.link} target="_blank" rel="noreferrer" className="flex-shrink-0 p-1.5 rounded-lg mt-0.5"
-            style={{ color: 'var(--color-text-muted)' }}>
-            <ExternalLink size={15} />
-          </a>
+      <div className="p-3 flex items-start gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--color-accent)' }}>{item.source}</p>
+          <h3 className="font-semibold leading-snug mb-1" style={{ color: 'var(--color-text)', fontFamily: 'Playfair Display, serif' }}>
+            {item.title}
+          </h3>
+          {item.description && (
+            <p className="text-sm leading-relaxed line-clamp-2" style={{ color: 'var(--color-text-muted)' }}>
+              {item.description}
+            </p>
+          )}
+          {isSaved && (
+            <p className="text-xs mt-1.5 font-medium" style={{ color: 'var(--color-green)' }}>Saved to your recipes</p>
+          )}
         </div>
-
-        {item.description && (
-          <p className="text-sm leading-relaxed line-clamp-2" style={{ color: 'var(--color-text-muted)' }}>
-            {item.description}
-          </p>
-        )}
-
-        <button
-          onClick={onSave}
-          disabled={isSaved || isSaving}
-          className="w-full py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
-          style={isSaved
-            ? { background: 'var(--color-surface)', color: 'var(--color-text-muted)' }
-            : { background: 'var(--color-accent)', color: 'white' }
-          }>
-          <BookmarkPlus size={16} />
-          {isSaving ? 'Saving…' : isSaved ? 'Saved' : 'Add to My Recipes'}
-        </button>
+        <div className="flex-shrink-0 mt-1" style={{ color: 'var(--color-text-muted)' }}>
+          {isSaved ? null : <ChevronRight size={18} />}
+        </div>
       </div>
-    </div>
+    </button>
   )
 }
