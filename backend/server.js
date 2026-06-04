@@ -372,6 +372,17 @@ const SUGGESTIONS_TTL = 2 * 60 * 60 * 1000 // 2 hours
 
 const ROUNDUP_RE = /\b(\d+\+?\s+(recipes?|ideas?|ways?|dishes?|meals?|tips?|things?)|best\s+\d+|round.?up|collection|weekly\s+menu|meal\s+plan|what\s+to\s+cook)\b/i
 
+function decodeHtmlEntities(str) {
+  return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+}
+
+function cleanImageUrl(url) {
+  if (!url) return null
+  const decoded = decodeHtmlEntities(url.trim())
+  // Upgrade small WordPress thumbnails to full size (remove -WxH suffix)
+  return decoded.replace(/-\d+x\d+(\.\w+)$/, '$1')
+}
+
 function parseRssItems(xml, sourceName) {
   const items = []
   const rx = /<item>([\s\S]*?)<\/item>/g
@@ -381,14 +392,15 @@ function parseRssItems(xml, sourceName) {
     const title = block.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i)?.[1]?.trim()
     const link  = block.match(/<link>([\s\S]*?)<\/link>/i)?.[1]?.trim()
               || block.match(/<link[^>]+href=["']([^"']+)["']/i)?.[1]?.trim()
-    const image = block.match(/<media:(?:content|thumbnail)[^>]+url=["']([^"']+)["']/i)?.[1]
-              || block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image/i)?.[1]
+    const rawImage = block.match(/<media:(?:content|thumbnail)[^>]+url=["']([^"']+)["']/i)?.[1]
+                  || block.match(/<enclosure[^>]+url=["']([^"']+)["'][^>]+type=["']image/i)?.[1]
+    const image = cleanImageUrl(rawImage)
     const rawDesc = block.match(/<description>([\s\S]*?)<\/description>/i)?.[1] || ''
     const desc = rawDesc.replace(/<!\[CDATA\[|\]\]>/g, '').replace(/<[^>]+>/g, '').trim().slice(0, 200)
     const cats = [...block.matchAll(/<category>(?:<!\[CDATA\[)?([\s\S]*?)(?:\?\]>)?<\/category>/gi)]
       .map(c => c[1].toLowerCase().trim())
     if (title && link && !ROUNDUP_RE.test(title)) {
-      items.push({ title, link, image: image || null, description: desc, categories: cats, source: sourceName })
+      items.push({ title, link, image, description: desc, categories: cats, source: sourceName })
     }
   }
   return items
