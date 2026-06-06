@@ -15,3 +15,8 @@ Thumbs.db
 /run/secrets/
 *.pem
 *.key
+
+# Local scripts with real server addresses
+release.ps1
+backfill_images.js
+backfill_images.ps1
