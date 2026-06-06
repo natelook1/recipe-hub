@@ -24,7 +24,7 @@ services:
       endpoint_mode: dnsrr
       placement:
         constraints:
-          - node.hostname == your-swarm-node
+          - node.hostname == swarm-mgr-01
       restart_policy:
         condition: on-failure
       labels:
