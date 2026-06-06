@@ -15,3 +15,6 @@ Thumbs.db
 /run/secrets/
 *.pem
 *.key
+
+# Local deploy config (contains real server IP)
+release.ps1
