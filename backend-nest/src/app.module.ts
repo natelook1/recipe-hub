@@ -9,9 +9,10 @@ import { ImagesModule } from './images/images.module';
 import { TagsModule } from './tags/tags.module';
 import { SettingsModule } from './settings/settings.module';
 import { GeminiModule } from './gemini/gemini.module';
+import { IngestModule } from './ingest/ingest.module';
 
 @Module({
-  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule, SettingsModule, GeminiModule],
+  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule, SettingsModule, GeminiModule, IngestModule],
   controllers: [AppController],
   providers: [
     AppService,
