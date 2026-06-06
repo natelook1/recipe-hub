@@ -16,12 +16,12 @@ param(
 
 Set-Location $PSScriptRoot
 
-$SERVER       = "administrator@192.168.30.67"
+$SERVER       = "user@your-swarm-host"
 $REMOTE_DIR   = "/opt/recipe-hub"
 $REMOTE_STACK = "$REMOTE_DIR/stack/recipe-hub.yml"
 $SERVICE      = "recipe-hub_api"
 $IMAGE        = "recipe-hub-api:latest"
-$HEALTH_URL   = "https://recipes-api.looknet.ca/health"
+$HEALTH_URL   = "https://your-api-domain/health"
 
 function Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function OK($msg)   { Write-Host "    [OK] $msg" -ForegroundColor Green }
@@ -70,14 +70,14 @@ if ($Bump) {
 
 # ── 1. Sync stack file to swarm repo ──────────────────────────────────────────
 
-$swarmStack = "C:\dev\swarm\stacks\recipe-hub.yml"
+$swarmStack = "C:\path\to\swarm\stacks\recipe-hub.yml"
 if (Test-Path (Split-Path $swarmStack)) {
     Copy-Item "stack\recipe-hub.yml" $swarmStack -Force
-    $swarmChanged = git -C "C:\dev\swarm" status --porcelain stacks/recipe-hub.yml
+    $swarmChanged = git -C (Split-Path $swarmStack -Parent | Split-Path -Parent) status --porcelain stacks/recipe-hub.yml
     if ($swarmChanged) {
-        git -C "C:\dev\swarm" add stacks/recipe-hub.yml
-        git -C "C:\dev\swarm" commit -m "chore: sync recipe-hub stack"
-        git -C "C:\dev\swarm" push
+        git -C (Split-Path $swarmStack -Parent | Split-Path -Parent) add stacks/recipe-hub.yml
+        git -C (Split-Path $swarmStack -Parent | Split-Path -Parent) commit -m "chore: sync recipe-hub stack"
+        git -C (Split-Path $swarmStack -Parent | Split-Path -Parent) push
         OK "Swarm repo synced"
     } else {
         OK "Swarm repo already up to date"
@@ -100,7 +100,7 @@ if ($FrontendOnly) {
 
 # ── 2. SSH: git pull on server ─────────────────────────────────────────────────
 
-Step "Pulling latest code on swarm-mgr-01..."
+Step "Pulling latest code on server..."
 ssh $SERVER "sudo chown -R administrator:administrator $REMOTE_DIR; git config --global --add safe.directory $REMOTE_DIR; cd $REMOTE_DIR && git pull"
 if ($LASTEXITCODE -ne 0) { Fail "git pull on server failed - is the repo cloned at $REMOTE_DIR?" }
 OK "Server repo up to date"

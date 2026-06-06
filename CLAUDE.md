@@ -1,13 +1,13 @@
 # Recipe Hub
 
-Personal recipe consolidation app for daily family use. React 19 + Vite + Tailwind CSS 4.3 frontend, Node.js/Express + SQLite backend, Google Gemini 2.5 Flash for AI extraction (Phase 2).
+Personal recipe consolidation app. React 19 + Vite + Tailwind CSS 4.3 frontend, Node.js/Express + SQLite backend, Google Gemini 2.5 Flash for AI extraction.
 
 ## Structure
 
 ```
-frontend/   React app (Cloudflare Pages → recipes.looknet.ca)
-backend/    Express API (Docker Swarm → recipes-api.looknet.ca, port 3002)
-stack/      Docker Swarm stack definition (also mirrored in C:\dev\swarm\stacks\recipe-hub.yml)
+frontend/   React app
+backend/    Express API (Docker Swarm, port 3002)
+stack/      Docker Swarm stack definition
 ```
 
 ## Dev
@@ -30,7 +30,7 @@ cd frontend; npm install; npm run dev
 .\test_endpoints.ps1 -BaseUrl "http://localhost:3000" -ApiKey "dev-key"
 
 # Against live backend:
-.\test_endpoints.ps1 -BaseUrl "http://192.168.30.67:3002" -ApiKey "<recipe_api_key secret value>"
+.\test_endpoints.ps1 -BaseUrl "https://your-api-host/health" -ApiKey "<your-api-key>"
 ```
 
 ## Deploy
@@ -42,12 +42,10 @@ cd frontend; npm install; npm run dev
 .\release.ps1 -FrontendOnly    # git push only (Cloudflare Pages auto-deploys frontend)
 ```
 
-Release also auto-syncs `stack/recipe-hub.yml` to `C:\dev\swarm\stacks\recipe-hub.yml` and commits it.
-
 **First-time server setup:**
 ```bash
-ssh administrator@192.168.30.67
-git clone https://github.com/natelook1/recipe-hub.git /opt/recipe-hub
+ssh user@your-swarm-host
+git clone https://github.com/your-username/recipe-hub.git /opt/recipe-hub
 mkdir -p /etc/recipe-hub/data/images
 docker secret create gemini_api_key -   # paste key, Ctrl+D
 docker secret create recipe_api_key -   # paste key, Ctrl+D
@@ -55,7 +53,7 @@ docker secret create recipe_api_key -   # paste key, Ctrl+D
 
 ## Key Files
 
-- `backend/server.js` — entire backend: DB schema, all CRUD, ingest routes, unit conversion, CORS (regex allows *.looknet.ca + *.pages.dev)
+- `backend/server.js` — entire backend: DB schema, all CRUD, ingest routes, unit conversion, CORS
 - `backend/gemini.js` — Gemini 2.5 Flash: URL fetch+parse, text parse, photo vision, JSON-LD hint extraction
 - `frontend/src/lib/units.js` — pure unit conversion module (mirrored in backend server.js)
 - `frontend/src/hooks/useTheme.js` — derives full palette from 2 picked colours (primary + secondary) via HSL math, persists to localStorage
@@ -78,16 +76,16 @@ docker secret create recipe_api_key -   # paste key, Ctrl+D
 
 ## Infra
 
-- Backend API: `recipes-api.looknet.ca` → Traefik → `swarm-mgr-01:3002` — x-api-key auth, no Authentik
-- Frontend: `recipes.looknet.ca` → Cloudflare Pages (Authentik commented out for now — add later)
-- Docker secrets: `gemini_api_key`, `recipe_api_key` on swarm-mgr-01
-- Data: bind mount `/etc/recipe-hub/data` on swarm-mgr-01 (SQLite DB + uploaded images, not R2)
-- CORS: handled in Express (regex), not Traefik — allows all `*.looknet.ca` and `*.pages.dev`
+- Backend: Docker Swarm behind Traefik — x-api-key auth
+- Frontend: Cloudflare Pages (auto-deploys on push)
+- Docker secrets: `gemini_api_key`, `recipe_api_key`
+- Data: bind mount for SQLite DB + uploaded images
+- CORS: handled in Express (regex allows your configured domains)
 
 ## Roadmap
 
-**Phase 1 (done):** Manual entry. Full CRUD, unit conversion toggle, servings scaler, dark mode, colour theming. Live at recipes.looknet.ca.
+**Phase 1 (done):** Manual entry. Full CRUD, unit conversion toggle, servings scaler, dark mode, colour theming.
 
-**Phase 2 (next):** AI extraction — Gemini 2.5 Flash already wired in `gemini.js`. Enable URL/Text/Photo tabs in `AddRecipeSheet.jsx` (remove `soon: true` flags). Gemini API key is provisioned as Docker secret. Verify key works and test extraction quality.
+**Phase 2 (next):** AI extraction — Gemini 2.5 Flash already wired in `gemini.js`. Enable URL/Text/Photo tabs in `AddRecipeSheet.jsx` (remove `soon: true` flags).
 
-**Phase 3:** Suggestions feed — n8n workflow scrapes her favourite sources on a schedule, populates a `suggestions` table. Add a "Discover" tab to the UI.
+**Phase 3:** Suggestions feed — RSS sources scraped on a schedule, scored against user tags. Add a "Discover" tab to the UI.
