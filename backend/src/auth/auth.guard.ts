@@ -1,11 +1,21 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Request } from 'express';
 
 export const SKIP_AUTH = 'skipAuth';
 
-const API_KEY = process.env.API_KEY || 'dev-key';
+function getSecret(secretName: string, envVar: string, defaultValue = ''): string {
+  const secretPath = path.join('/run/secrets', secretName);
+  try {
+    if (fs.existsSync(secretPath)) return fs.readFileSync(secretPath, 'utf8').trim();
+  } catch {}
+  return process.env[envVar] || defaultValue;
+}
+
+const API_KEY = getSecret('recipe_api_key', 'API_KEY', 'dev-key');
 
 @Injectable()
 export class AuthGuard implements CanActivate {
