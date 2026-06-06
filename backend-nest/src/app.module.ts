@@ -7,9 +7,10 @@ import { AuthGuard } from './auth/auth.guard';
 import { RecipesModule } from './recipes/recipes.module';
 import { ImagesModule } from './images/images.module';
 import { TagsModule } from './tags/tags.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
-  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule],
+  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule, SettingsModule],
   controllers: [AppController],
   providers: [
     AppService,
