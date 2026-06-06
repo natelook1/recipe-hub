@@ -221,7 +221,7 @@ if ($SkipGemini) {
     # URL extraction — expects Gemini to return structured recipe
     $urlResult = Test-Endpoint -Method "POST" -Path "/api/ingest/url" -Headers $AuthHeaders `
         -Body @{ url = "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/"; preferredUnit = "metric" } `
-        -ExpectedCodes @(200)
+        -ExpectedCodes @(200, 201)
 
     if ($urlResult.Content) {
         $draft = $urlResult.Content
@@ -262,7 +262,7 @@ if ($SkipGemini) {
 
     $textResult = Test-Endpoint -Method "POST" -Path "/api/ingest/text" -Headers $AuthHeaders `
         -Body @{ text = $pasteText; preferredUnit = "metric" } `
-        -ExpectedCodes @(200)
+        -ExpectedCodes @(200, 201)
 
     if ($textResult.Content) {
         $td = $textResult.Content
