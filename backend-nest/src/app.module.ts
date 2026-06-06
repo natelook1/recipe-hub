@@ -8,9 +8,10 @@ import { RecipesModule } from './recipes/recipes.module';
 import { ImagesModule } from './images/images.module';
 import { TagsModule } from './tags/tags.module';
 import { SettingsModule } from './settings/settings.module';
+import { GeminiModule } from './gemini/gemini.module';
 
 @Module({
-  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule, SettingsModule],
+  imports: [DatabaseModule, RecipesModule, ImagesModule, TagsModule, SettingsModule, GeminiModule],
   controllers: [AppController],
   providers: [
     AppService,
